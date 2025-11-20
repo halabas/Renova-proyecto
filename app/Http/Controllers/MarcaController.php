@@ -3,62 +3,69 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Marca;
+use Inertia\Inertia;
 
 class MarcaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index()
     {
-        //
+        $marcas = Marca::all();
+
+        return Inertia::render('crud/crud', [
+            'nombre_modelo' => 'marcas',
+            'datos' => $marcas,
+            'columnas' => ['id', 'nombre'],
+            'campos' => [
+                ['name' => 'nombre', 'label' => 'Nombre', 'type' => 'text'],
+            ],
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+public function store(Request $request)
+{
+    $request->validate(
+        [
+            'nombre' => 'required|string|max:255|unique:marcas,nombre',
+        ],
+        [
+            'nombre.required' => 'El nombre de la marca es obligatorio.',
+            'nombre.string' => 'El nombre debe ser un texto válido.',
+            'nombre.max' => 'El nombre no puede tener más de 255 caracteres.',
+            'nombre.unique' => 'Ya existe una marca con ese nombre.',
+        ]
+    );
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+    Marca::create($request->only('nombre'));
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
+    return redirect()->back();
+}
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+public function update(Request $request, Marca $marca)
+{
+    $request->validate(
+        [
+            'nombre' => 'required|string|max:255|unique:marcas,nombre,' . $marca->id,
+        ],
+        [
+            'nombre.required' => 'El nombre de la marca es obligatorio.',
+            'nombre.string' => 'El nombre debe ser un texto válido.',
+            'nombre.max' => 'El nombre no puede tener más de 255 caracteres.',
+            'nombre.unique' => 'Ya existe una marca con ese nombre.',
+        ]
+    );
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    $marca->update($request->only('nombre'));
+
+    return redirect()->back();
+}
+
+
+    public function destroy(Marca $marca)
     {
-        //
+        $marca->delete();
+        return redirect()->back();
     }
 }

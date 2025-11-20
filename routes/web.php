@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
+use App\Http\Controllers\MarcaController;
 
 Route::get('/', function () {
     return Inertia::render('welcome', [
@@ -15,5 +16,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 });
+Route::resource('marcas', MarcaController::class)->except(['show', 'create', 'edit']);
 
 require __DIR__.'/settings.php';
