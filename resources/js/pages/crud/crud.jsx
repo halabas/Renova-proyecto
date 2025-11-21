@@ -1,9 +1,20 @@
-import React, { useState } from 'react';
-import { useForm, router } from '@inertiajs/react';
+import React, { useState, useEffect } from 'react';
+import { useForm, router, usePage } from '@inertiajs/react';
 
 export default function Crud({ nombre_modelo, datos, columnas, campos, ObjetoEditando }) {
+  const { flash } = usePage().props;
   const [editando, setEditando] = useState(!!ObjetoEditando);
+  const [mensaje, setMensaje] = useState(flash.success);
   const { data: datosFormulario, setData, post, put, reset, errors } = useForm(ObjetoEditando || {});
+
+  // Actualiza el mensaje cuando cambia flash.success
+  useEffect(() => {
+    setMensaje(flash.success);
+    if (flash.success) {
+      const timer = setTimeout(() => setMensaje(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [flash.success]);
 
   // Actualiza los campos del formulario a la hora de realizar una acción en este.
   const actualizarCampo = (e) => setData(e.target.name, e.target.value);
@@ -41,10 +52,18 @@ export default function Crud({ nombre_modelo, datos, columnas, campos, ObjetoEdi
       router.delete(`/${nombre_modelo}/${id}`);
     }
   };
-    // Estilos temporales
+
+  // Estilos temporales
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">{nombre_modelo.toUpperCase()}</h1>
+
+      {mensaje && (
+        <div className="bg-green-500 text-white p-2 rounded mb-4 flex justify-between items-center">
+          <span>{mensaje}</span>
+          <button onClick={() => setMensaje(null)} className="font-bold px-2">X</button>
+        </div>
+      )}
 
       <form onSubmit={enviarFormulario} className="mb-6 border p-4 rounded">
         {campos.map((camp) => (

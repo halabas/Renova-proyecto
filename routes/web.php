@@ -7,7 +7,7 @@ use App\Http\Controllers\MarcaController;
 use App\Http\Controllers\ModeloController;
 use App\Http\Controllers\MovilController;
 use App\Http\Controllers\CategoriaController;
-
+use App\Http\Controllers\ComponenteController;
 Route::get('/', function () {
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
@@ -26,5 +26,8 @@ Route::resource('moviles', MovilController::class)
     ->parameters(['moviles' => 'movil']);
 Route::resource('categorias', CategoriaController::class)
     ->except(['create', 'edit', 'show']);
+
+Route::resource('componentes', ComponenteController::class)
+    ->except(['create','edit','show']);
 
 require __DIR__.'/settings.php';

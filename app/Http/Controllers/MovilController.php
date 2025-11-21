@@ -79,9 +79,13 @@ class MovilController extends Controller
             $duplicado->update([
                 'stock' => $duplicado->stock + ($request->stock ?? 1)
             ]);
+
+            return back()->with('success', 'El stock del móvil existente se ha incrementado.');
         }
 
         Movil::create($request->only('modelo_id','color','grado','almacenamiento','stock'));
+
+        return back()->with('success', 'Móvil creado correctamente.');
     }
 
     public function update(Request $request, Movil $movil)
@@ -100,11 +104,14 @@ class MovilController extends Controller
         }
 
         $movil->update($request->only('modelo_id','color','grado','almacenamiento','stock'));
+
+        return back()->with('success', 'Móvil actualizado correctamente.');
     }
 
     public function destroy(Movil $movil)
     {
         $movil->delete();
+        return back()->with('success', 'Móvil eliminado correctamente.');
     }
 
     private function validaciones(Request $request)
