@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('modelos', function (Blueprint $table) {
             $table->id();
             $table->string('nombre');
-            $table->foreignId('marca_id')->constrained('marcas')->restrictOnDelete();
+            $table->foreignId('marca_id')->constrained('marcas')->cascadeOnDelete();
             $table->decimal('precio_base', 10, 2);
             $table->timestamps();
         });

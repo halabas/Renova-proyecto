@@ -37,7 +37,7 @@ export default function Crud({ nombre_modelo, datos, columnas, campos, ObjetoEdi
 
   // Elimina un registro con confirmación
   const eliminar = (id) => {
-    if (confirm('¿Seguro que quieres eliminarlo?')) {
+    if (confirm('¿Seguro que quieres eliminarlo? Borrara tambien los registros relacionados.')) {
       router.delete(`/${nombre_modelo}/${id}`);
     }
   };
