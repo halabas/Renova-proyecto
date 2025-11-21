@@ -3,62 +3,92 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Categoria;
+use Inertia\Inertia;
+use Illuminate\Validation\ValidationException;
 
 class CategoriaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $categorias = Categoria::all();
+
+        return Inertia::render('crud/crud', [
+            'nombre_modelo' => 'categorias',
+            'datos' => $categorias->map(fn($c) => [
+                'id' => $c->id,
+                'nombre' => $c->nombre,
+            ]),
+            'columnas' => ['id','nombre'],
+            'campos' => [
+                [
+                    'name' => 'nombre',
+                    'label' => 'Nombre',
+                    'type' => 'text',
+                ],
+            ],
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $this->validaciones($request);
+
+        $duplicado = $this->comprobarDuplicado($request->nombre);
+
+        if ($duplicado) {
+            throw ValidationException::withMessages([
+                'nombre' => ['Ya existe una categoría con este nombre.']
+            ]);
+        }
+
+        Categoria::create($request->only('nombre'));
+
+        return back()->with('success', 'Categoría creada correctamente.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function update(Request $request, Categoria $categoria)
     {
-        //
+        $this->validaciones($request);
+
+        $duplicado = $this->comprobarDuplicado($request->nombre, $categoria->id);
+
+        if ($duplicado) {
+            throw ValidationException::withMessages([
+                'nombre' => ['Ya existe una categoría con este nombre.']
+            ]);
+        }
+
+        $categoria->update($request->only('nombre'));
+
+        return back()->with('success', 'Categoría actualizada correctamente.');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function destroy(Categoria $categoria)
     {
-        //
+        $categoria->delete();
+        return back()->with('success', 'Categoría eliminada.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    private function validaciones(Request $request)
     {
-        //
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+        ], [
+            'nombre.required' => 'El nombre de la categoría es obligatorio.',
+            'nombre.string' => 'El nombre de la categoría debe ser un texto válido.',
+            'nombre.max' => 'El nombre de la categoría no puede superar los 255 caracteres.',
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    private function comprobarDuplicado(string $nombre, ?int $categoria_id_edit = null): ?Categoria
     {
-        //
+        $query = Categoria::whereRaw('LOWER(nombre) = ?', [strtolower($nombre)]);
+
+        if ($categoria_id_edit) {
+            $query->where('id', '<>', $categoria_id_edit);
+        }
+
+        return $query->first();
     }
 }

@@ -6,6 +6,7 @@ use Laravel\Fortify\Features;
 use App\Http\Controllers\MarcaController;
 use App\Http\Controllers\ModeloController;
 use App\Http\Controllers\MovilController;
+use App\Http\Controllers\CategoriaController;
 
 Route::get('/', function () {
     return Inertia::render('welcome', [
@@ -23,5 +24,7 @@ Route::resource('modelos', ModeloController::class)->except(['create','edit','sh
 Route::resource('moviles', MovilController::class)
     ->except(['create','edit','show'])
     ->parameters(['moviles' => 'movil']);
+Route::resource('categorias', CategoriaController::class)
+    ->except(['create', 'edit', 'show']);
 
 require __DIR__.'/settings.php';
