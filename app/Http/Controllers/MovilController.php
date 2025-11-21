@@ -29,7 +29,7 @@ class MovilController extends Controller
             'columnas' => ['id','modelo','marca','color','grado','almacenamiento','stock'],
             'campos' => [
                 [
-                    'name' => 'modelo',
+                    'name' => 'modelo_id',
                     'label' => 'Modelo',
                     'type' => 'select',
                     'options' => Modelo::all()->map(fn($mod) => [
@@ -67,42 +67,44 @@ class MovilController extends Controller
         ]);
     }
 
-public function store(Request $request)
-{
-    $this->validaciones($request);
+    public function store(Request $request)
+    {
+        $this->validaciones($request);
 
-    $duplicado = $this->comprobarDuplicado($request->only('modelo_id','color','grado','almacenamiento'));
+        $duplicado = $this->comprobarDuplicado(
+            $request->only('modelo_id','color','grado','almacenamiento')
+        );
 
-    if ($duplicado) {
-        $duplicado->update(['stock' => $duplicado->stock + ($request->stock ?? 1)]);
-        return back()->with('success', 'El móvil ya existía, se ha incrementado el stock.');
+        if ($duplicado) {
+            $duplicado->update([
+                'stock' => $duplicado->stock + ($request->stock ?? 1)
+            ]);
+        }
+
+        Movil::create($request->only('modelo_id','color','grado','almacenamiento','stock'));
     }
 
-    Movil::create($request->only('modelo_id', 'color', 'grado', 'almacenamiento', 'stock'));
-    return back()->with('success', 'Móvil creado correctamente.');
-}
+    public function update(Request $request, Movil $movil)
+    {
+        $this->validaciones($request);
 
-public function update(Request $request, Movil $movil)
-{
-    $this->validaciones($request);
+        $duplicado = $this->comprobarDuplicado(
+            $request->only('modelo_id','color','grado','almacenamiento'),
+            $movil->id
+        );
 
-    $duplicado = $this->comprobarDuplicado($request->only('modelo_id','color','grado','almacenamiento'), $movil->id);
+        if ($duplicado) {
+            throw ValidationException::withMessages([
+                'modelo_id' => ['Ya existe un móvil idéntico con estas características.']
+            ]);
+        }
 
-    if ($duplicado) {
-        throw ValidationException::withMessages([
-            'modelo_id' => ['Ya existe un móvil idéntico con estas características.']
-        ]);
+        $movil->update($request->only('modelo_id','color','grado','almacenamiento','stock'));
     }
-
-    $movil->update($request->only('modelo_id','color','grado','almacenamiento','stock'));
-}
-
-
 
     public function destroy(Movil $movil)
     {
         $movil->delete();
-        return back()->with('success', 'Móvil eliminado.');
     }
 
     private function validaciones(Request $request)
@@ -129,17 +131,18 @@ public function update(Request $request, Movil $movil)
             'stock.min' => 'El stock debe ser al menos 1.',
         ]);
     }
+
     private function comprobarDuplicado(array $datos, ?int $movil_edit_id = null): ?Movil
-{
-    $query = Movil::where('modelo_id', $datos['modelo_id'])
-        ->where('color', $datos['color'])
-        ->where('grado', $datos['grado'])
-        ->where('almacenamiento', $datos['almacenamiento'])  ;
-    if ($movil_edit_id) {
-        $query->where('id', '<>', $movil_edit_id);
+    {
+        $query = Movil::where('modelo_id', $datos['modelo_id'])
+            ->where('color', $datos['color'])
+            ->where('grado', $datos['grado'])
+            ->where('almacenamiento', $datos['almacenamiento']);
+
+        if ($movil_edit_id) {
+            $query->where('id', '<>', $movil_edit_id);
+        }
+
+        return $query->first();
     }
-
-    return $query->first();
-}
-
 }
