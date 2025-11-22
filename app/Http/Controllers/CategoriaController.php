@@ -67,7 +67,8 @@ class CategoriaController extends Controller
     public function destroy(Categoria $categoria)
     {
         $categoria->delete();
-        return back()->with('success', 'Categoría eliminada.');
+
+        return back()->with('success', 'Categoría eliminada correctamente.');
     }
 
     private function validaciones(Request $request)

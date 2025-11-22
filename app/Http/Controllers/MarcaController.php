@@ -24,48 +24,48 @@ class MarcaController extends Controller
     }
 
 
-public function store(Request $request)
-{
-    $request->validate(
-        [
-            'nombre' => 'required|string|max:255|unique:marcas,nombre',
-        ],
-        [
-            'nombre.required' => 'El nombre de la marca es obligatorio.',
-            'nombre.string' => 'El nombre debe ser un texto válido.',
-            'nombre.max' => 'El nombre no puede tener más de 255 caracteres.',
-            'nombre.unique' => 'Ya existe una marca con ese nombre.',
-        ]
-    );
+    public function store(Request $request)
+    {
+        $request->validate(
+            [
+                'nombre' => 'required|string|max:255|unique:marcas,nombre',
+            ],
+            [
+                'nombre.required' => 'El nombre de la marca es obligatorio.',
+                'nombre.string' => 'El nombre debe ser un texto válido.',
+                'nombre.max' => 'El nombre no puede tener más de 255 caracteres.',
+                'nombre.unique' => 'Ya existe una marca con ese nombre.',
+            ]
+        );
 
-    Marca::create($request->only('nombre'));
+        Marca::create($request->only('nombre'));
 
-    return redirect()->back();
-}
+        return redirect()->back()->with('success', 'Marca creada correctamente.');
+    }
 
-public function update(Request $request, Marca $marca)
-{
-    $request->validate(
-        [
-            'nombre' => 'required|string|max:255|unique:marcas,nombre,' . $marca->id,
-        ],
-        [
-            'nombre.required' => 'El nombre de la marca es obligatorio.',
-            'nombre.string' => 'El nombre debe ser un texto válido.',
-            'nombre.max' => 'El nombre no puede tener más de 255 caracteres.',
-            'nombre.unique' => 'Ya existe una marca con ese nombre.',
-        ]
-    );
+    public function update(Request $request, Marca $marca)
+    {
+        $request->validate(
+            [
+                'nombre' => 'required|string|max:255|unique:marcas,nombre,' . $marca->id,
+            ],
+            [
+                'nombre.required' => 'El nombre de la marca es obligatorio.',
+                'nombre.string' => 'El nombre debe ser un texto válido.',
+                'nombre.max' => 'El nombre no puede tener más de 255 caracteres.',
+                'nombre.unique' => 'Ya existe una marca con ese nombre.',
+            ]
+        );
 
-    $marca->update($request->only('nombre'));
+        $marca->update($request->only('nombre'));
 
-    return redirect()->back();
-}
+        return redirect()->back()->with('success', 'Marca actualizada correctamente.');
+    }
 
 
     public function destroy(Marca $marca)
     {
         $marca->delete();
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Marca eliminada correctamente.');
     }
 }

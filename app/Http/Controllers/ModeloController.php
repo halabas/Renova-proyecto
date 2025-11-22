@@ -14,30 +14,30 @@ class ModeloController extends Controller
     {
         $modelos = Modelo::with('marca')->get();
 
-return Inertia::render('crud/crud', [
-    'nombre_modelo' => 'modelos',
-    'datos' => $modelos->map(fn($m) => [
-        'id' => $m->id,
-        'nombre' => $m->nombre,
-        'marca_id' => $m->marca->id,
-        'marca' => $m->marca->nombre,
-        'precio_base' => $m->precio_base,
-    ]),
-    'columnas' => ['id', 'nombre', 'marca', 'precio_base'],
-    'campos' => [
-        ['name' => 'nombre', 'label' => 'Nombre', 'type' => 'text'],
-        [
-            'name' => 'marca_id',
-            'label' => 'Marca',
-            'type' => 'select',
-            'options' => Marca::all()->map(fn($m) => [
-                'value' => $m->id,
-                'label' => $m->nombre
-            ])
-        ],
-        ['name' => 'precio_base', 'label' => 'Precio Base', 'type' => 'number']
-    ],
-]);
+        return Inertia::render('crud/crud', [
+            'nombre_modelo' => 'modelos',
+            'datos' => $modelos->map(fn($m) => [
+                'id' => $m->id,
+                'nombre' => $m->nombre,
+                'marca_id' => $m->marca->id,
+                'marca' => $m->marca->nombre,
+                'precio_base' => $m->precio_base,
+            ]),
+            'columnas' => ['id', 'nombre', 'marca', 'precio_base'],
+            'campos' => [
+                ['name' => 'nombre', 'label' => 'Nombre', 'type' => 'text'],
+                [
+                    'name' => 'marca_id',
+                    'label' => 'Marca',
+                    'type' => 'select',
+                    'options' => Marca::all()->map(fn($m) => [
+                        'value' => $m->id,
+                        'label' => $m->nombre
+                    ])
+                ],
+                ['name' => 'precio_base', 'label' => 'Precio Base', 'type' => 'number']
+            ],
+        ]);
     }
 
     public function store(Request $request)
@@ -48,7 +48,7 @@ return Inertia::render('crud/crud', [
 
         Modelo::create($request->only('nombre', 'marca_id', 'precio_base'));
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Modelo creado correctamente.');
     }
 
     public function update(Request $request, Modelo $modelo)
@@ -59,13 +59,13 @@ return Inertia::render('crud/crud', [
 
         $modelo->update($request->only('nombre', 'marca_id', 'precio_base'));
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Modelo actualizado correctamente.');
     }
 
     public function destroy(Modelo $modelo)
     {
         $modelo->delete();
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Modelo eliminado correctamente.');
     }
 
     private function validaciones(Request $request)
@@ -83,19 +83,19 @@ return Inertia::render('crud/crud', [
         ]);
     }
 
-private function comprobarDuplicado(string $nombre, int $marca_id, ?int $modelo_edit_id = null)
-{
-    $consulta = Modelo::where('marca_id', $marca_id)
-        ->whereRaw('LOWER(nombre) = ?', [strtolower($nombre)]);
+    private function comprobarDuplicado(string $nombre, int $marca_id, ?int $modelo_edit_id = null)
+    {
+        $consulta = Modelo::where('marca_id', $marca_id)
+            ->whereRaw('LOWER(nombre) = ?', [strtolower($nombre)]);
 
-    if ($modelo_edit_id) {
-        $consulta->whereNot('id', $modelo_edit_id);
-    }
+        if ($modelo_edit_id) {
+            $consulta->whereNot('id', $modelo_edit_id);
+        }
 
-    if ($consulta->exists()) {
-        throw ValidationException::withMessages([
-            'nombre' => ['Ya existe un modelo con este nombre para la marca seleccionada.']
-        ]);
+        if ($consulta->exists()) {
+            throw ValidationException::withMessages([
+                'nombre' => ['Ya existe un modelo con este nombre para la marca seleccionada.']
+            ]);
+        }
     }
-}
 }

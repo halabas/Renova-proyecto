@@ -18,6 +18,7 @@ return new class extends Migration
             $table->enum('grado', ['S', 'A+', 'A', 'B']);
             $table->integer('almacenamiento');
             $table->integer('stock')->default(0);
+            $table->unique(['modelo_id', 'color', 'grado', 'almacenamiento']);
             $table->timestamps();
         });
 

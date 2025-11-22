@@ -9,7 +9,7 @@ class Componente extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nombre', 'categoria_id', 'modelo_id', 'precio'];
+    protected $fillable = ['nombre', 'categoria_id', 'modelo_id', 'precio', 'stock'];
 
     public function categoria()
     {
