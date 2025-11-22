@@ -10,5 +10,6 @@ class Reparacion extends Model
     use HasFactory;
 
     protected $fillable = ['nombre', 'precio_base'];
+    protected $table = 'reparaciones';
 
 }

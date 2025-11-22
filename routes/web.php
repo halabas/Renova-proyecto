@@ -8,6 +8,9 @@ use App\Http\Controllers\ModeloController;
 use App\Http\Controllers\MovilController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ComponenteController;
+use App\Http\Controllers\ReparacionController;
+
+
 Route::get('/', function () {
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
@@ -29,5 +32,10 @@ Route::resource('categorias', CategoriaController::class)
 
 Route::resource('componentes', ComponenteController::class)
     ->except(['create','edit','show']);
+
+
+Route::resource('reparaciones', ReparacionController::class)
+    ->except(['create', 'edit', 'show'])
+    ->parameters(['reparaciones' => 'reparacion']);
 
 require __DIR__.'/settings.php';
