@@ -10,18 +10,26 @@ import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/react';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  SelectLabel,
+} from "@/components/ui/select";
+import { SelectGroup } from '@radix-ui/react-select';
 
-interface LoginProps {
-    status?: string;
-    canResetPassword: boolean;
-    canRegister: boolean;
-}
 
 export default function Login({
     status,
     canResetPassword,
     canRegister,
-}: LoginProps) {
+    valor,
+    setValor
+
+
+}) {
     return (
         <AuthLayout
             title="Log in to your account"
@@ -97,6 +105,27 @@ export default function Login({
                                 Log in
                             </Button>
                         </div>
+                            <div className="w-72 p-8">
+      <Select value={valor} onValueChange={setValor}>
+        <SelectGroup>
+        <SelectLabel>Selecciona un dispositivo</SelectLabel>
+        <SelectTrigger>
+          <SelectValue placeholder="Elige una opción" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="iphone">iPhone</SelectItem>
+          <SelectItem value="samsung">Samsung</SelectItem>
+          <SelectItem value="xiaomi">Xiaomi</SelectItem>
+          <SelectItem value="otro">Otro</SelectItem>
+        </SelectContent>
+                </SelectGroup>
+
+      </Select>
+
+      <p className="mt-4 text-lg">
+        Valor seleccionado: <strong>{valor}</strong>
+      </p>
+    </div>
 
                         {canRegister && (
                             <div className="text-center text-sm text-muted-foreground">
