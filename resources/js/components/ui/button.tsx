@@ -15,6 +15,7 @@ const buttonVariants = cva(
         secondary: "bg-gradient-to-r from-[#9747FF] to-[#2F88FF] shadow-md",
         outlineGray: "border border-gray-300 text-black bg-transparent",
         outlinePurple: "border border-[#9747FF] text-black bg-transparent",
+        social: 'border-gray-300 flex items-center justify-center text-muted-foreground'
       },
       size: {
         default: "py-2 px-6 text-base",
