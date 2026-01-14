@@ -112,7 +112,7 @@ export default function TarjetaProducto({
         <Button
           variant="default"
           size="sm"
-          className="h-11 w-full rounded-full bg-linear-to-r from-indigo-500 via-violet-500 to-pink-500 text-sm font-semibold tracking-wide text-white shadow-md transition hover:scale-[1.02] hover:shadow-lg"
+          className="h-11 w-full rounded-full bg-linear-to-r from-[#9747ff] to-[#ff2e88] text-sm font-semibold tracking-wide text-white shadow-md transition hover:scale-[1.02] hover:shadow-lg"
         >
           Ver detalles
         </Button>
