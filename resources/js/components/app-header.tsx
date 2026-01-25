@@ -18,8 +18,9 @@ import { useInitials } from '@/hooks/use-initials';
 import { cn, isSameUrl } from '@/lib/utils';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Search, ShoppingCart } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import AppLogo from './app-logo';
+import BarraBusqueda from '@/components/barra-busqueda';
 
 const mainNavItems: NavItem[] = [
   { title: 'Móviles', href: '/productos' },
@@ -73,10 +74,9 @@ export function AppHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItem[]
           </div>
 
           <div className="ml-auto flex items-center space-x-5">
-
-            <Button size="icon" variant="outlineGray" className="group h-9 w-9 cursor-pointer">
-              <Search className="size-5 opacity-80 group-hover:opacity-100" />
-            </Button>
+            <div className="hidden md:block">
+      <BarraBusqueda />
+            </div>
             <Button size="icon" variant="outlineGray" className="group h-9 w-9 cursor-pointer">
               <ShoppingCart className="size-5 opacity-80 group-hover:opacity-100" />
             </Button>
