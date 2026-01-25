@@ -9,6 +9,7 @@ use App\Http\Controllers\MovilController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ComponenteController;
 use App\Http\Controllers\ReparacionController;
+use App\Http\Controllers\BuscarController;
 
 
 Route::get('/', function () {
@@ -16,6 +17,8 @@ Route::get('/', function () {
         'canRegister' => Features::enabled(Features::registration()),
     ]);
 })->name('home');
+
+Route::get('/buscar', [BuscarController::class, 'index'])->name('buscar');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
