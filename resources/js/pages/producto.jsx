@@ -24,7 +24,9 @@ const Etiquetas = {
 };
 
 export default function Producto({
+  tipo = "modelo",
   modelo,
+  componente,
   coloresDisponibles = [],
   gradosDisponibles = [],
   almacenamientosDisponibles = [],
@@ -36,6 +38,53 @@ export default function Producto({
     "https://m.media-amazon.com/images/I/71rjXl9tmJL._AC_UF1000,1000_QL80_.jpg",
     "https://m.media-amazon.com/images/I/71rjXl9tmJL._AC_UF1000,1000_QL80_.jpg",
   ];
+
+  if (tipo === "componente") {
+    const nombre = componente.nombre;
+    const subtitulo = componente.subtitulo;
+    const precio = Math.round(componente.precio);
+    const imagen = componente.imagen || imagenes[0];
+
+    return (
+      <AppLayout>
+        <div className="mx-auto w-full max-w-6xl px-6 py-8">
+          <div className="mt-6 grid gap-10 lg:grid-cols-2">
+            <div>
+              <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
+                <div className="h-[420px] w-full">
+                  <img
+                    src={imagen}
+                    alt={nombre}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h1 className="text-3xl font-semibold text-slate-900">{nombre}</h1>
+                <p className="text-base text-slate-500">{subtitulo}</p>
+              </div>
+
+              <BarraLateral titulo="">
+                <div className="flex items-end gap-3">
+                  <span className="text-3xl font-semibold text-violet-600">{precio}€</span>
+                  <span className="text-sm text-slate-400">IVA incluido</span>
+                </div>
+              </BarraLateral>
+
+              <BarraLateral titulo="">Descripción</BarraLateral>
+
+              <Button variant="default" className="h-12 w-full rounded-full text-base">
+                Añadir al carrito
+              </Button>
+            </div>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
 
   const [colorActivo, setColorActivo] = useState(coloresDisponibles[0] || "");
   const [gradoActivo, setGradoActivo] = useState(gradosDisponibles[0] || "");
@@ -131,7 +180,7 @@ export default function Producto({
               <div className="flex items-center justify-between text-sm font-semibold">
                 <span className="text-slate-900">
                   Estado: <span className="text-violet-600">Excelente</span>
-                </span>
+                </span>delos/24
                 <span className="text-violet-600">¿Qué significa?</span>
               </div>
               <div className="mt-6 grid gap-6 sm:grid-cols-2">
@@ -157,7 +206,7 @@ export default function Producto({
                           Etiquetas[item.color] || "bg-slate-500"
                         }`}
                       >
-                        {item.tag}
+                        {item.tag}delos/24
                       </span>
                     </div>
                     <div className="flex h-full flex-col items-center justify-center text-center">

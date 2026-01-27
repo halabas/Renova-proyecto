@@ -215,16 +215,21 @@ export default function Busqueda({
               )}
 
               {items.map((item) => (
-                <TarjetaProducto
+                <Link
                   key={`${item.tipo}-${item.id}`}
-                  tipo={item.tipo}
-                  nombre={item.nombre}
-                  precio={item.precio ?? 0}
-                  imagen={item.imagen || imagenprueba}
-                  coloresDisponibles={item.coloresDisponibles || []}
-                  categoria={item.categoria}
-                  modeloCompatible={item.modeloCompatible}
-                />
+                  href={item.tipo === "modelo" ? `/modelos/${item.id}` : `/componentes/${item.id}`}
+                  className="w-full"
+                >
+                  <TarjetaProducto
+                    tipo={item.tipo}
+                    nombre={item.nombre}
+                    precio={item.precio ?? 0}
+                    imagen={item.imagen || imagenprueba}
+                    coloresDisponibles={item.coloresDisponibles || []}
+                    categoria={item.categoria}
+                    modeloCompatible={item.modeloCompatible}
+                  />
+                </Link>
               ))}
             </div>
           </div>

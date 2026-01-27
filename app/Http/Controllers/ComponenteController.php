@@ -114,6 +114,30 @@ class ComponenteController extends Controller
         return back()->with('success', 'Componente actualizado correctamente.');
     }
 
+    public function show(Componente $componente)
+    {
+        $componente->load(['categoria', 'modelo.marca']);
+
+        $categoria = $componente->categoria?->nombre;
+        $marca = $componente->modelo?->marca?->nombre;
+        $modelo = $componente->modelo?->nombre;
+        $subtitulo = "$categoria";
+
+        return Inertia::render('producto', [
+            'tipo' => 'componente',
+            'componente' => [
+                'id' => $componente->id,
+                'nombre' => $componente->nombre,
+                'precio' => $componente->precio,
+                'imagen' => null,
+                'subtitulo' => $subtitulo,
+                'categoria' => $categoria,
+                'marca' => $marca,
+                'modelo' => $modelo,
+            ],
+        ]);
+    }
+
     public function destroy(Componente $componente)
     {
         $componente->delete();
