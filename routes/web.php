@@ -29,7 +29,7 @@ Route::resource('categorias', CategoriaController::class)
     ->except(['create', 'edit', 'show']);
 
 Route::resource('componentes', ComponenteController::class)
-    ->except(['create','edit','show']);
+    ->except(['create','edit']);
 
 
 Route::resource('reparaciones', ReparacionController::class)

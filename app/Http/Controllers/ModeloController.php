@@ -89,6 +89,7 @@ class ModeloController extends Controller
         }
 
         return Inertia::render('producto', [
+            'tipo' => 'modelo',
             'modelo' => [
                 'id' => $modelo->id,
                 'nombre' => $modelo->nombre,
