@@ -16,12 +16,12 @@ class ModeloController extends Controller
 
         return Inertia::render('crud/crud', [
             'nombre_modelo' => 'modelos',
-            'datos' => $modelos->map(fn($m) => [
-                'id' => $m->id,
-                'nombre' => $m->nombre,
-                'marca_id' => $m->marca->id,
-                'marca' => $m->marca->nombre,
-                'precio_base' => $m->precio_base,
+            'datos' => $modelos->map(fn($modelo) => [
+                'id' => $modelo->id,
+                'nombre' => $modelo->nombre,
+                'marca_id' => $modelo->marca->id,
+                'marca' => $modelo->marca->nombre,
+                'precio_base' => $modelo->precio_base,
             ]),
             'columnas' => ['id', 'nombre', 'marca', 'precio_base'],
             'campos' => [
@@ -30,9 +30,9 @@ class ModeloController extends Controller
                     'name' => 'marca_id',
                     'label' => 'Marca',
                     'type' => 'select',
-                    'options' => Marca::all()->map(fn($m) => [
-                        'value' => $m->id,
-                        'label' => $m->nombre
+                    'options' => Marca::all()->map(fn($marca) => [
+                        'value' => $marca->id,
+                        'label' => $marca->nombre
                     ])
                 ],
                 ['name' => 'precio_base', 'label' => 'Precio Base', 'type' => 'number']
@@ -60,6 +60,46 @@ class ModeloController extends Controller
         $modelo->update($request->only('nombre', 'marca_id', 'precio_base'));
 
         return redirect()->back()->with('success', 'Modelo actualizado correctamente.');
+    }
+
+    public function show(Modelo $modelo)
+    {
+        $modelo->load(['marca', 'moviles']);
+
+        $coloresDisponibles = $modelo->moviles
+            ->pluck('color')
+            ->unique()
+            ->values()
+            ->all();
+        $gradosDisponibles = $modelo->moviles
+            ->pluck('grado')
+            ->unique()
+            ->values()
+            ->all();
+        $almacenamientosDisponibles = $modelo->moviles
+            ->pluck('almacenamiento')
+            ->unique()
+            ->values()
+            ->all();
+            // Crear un array asociativo con la combinaciones posibles y  su stock.
+        $stockPorVariante = [];
+        foreach ($modelo->moviles as $movil) {
+            $clave = $movil->color . '|' . $movil->grado . '|' . $movil->almacenamiento;
+            $stockPorVariante[$clave] = $movil->stock;
+        }
+
+        return Inertia::render('producto', [
+            'modelo' => [
+                'id' => $modelo->id,
+                'nombre' => $modelo->nombre,
+                'marca' => $modelo->marca->nombre,
+                'precio_base' => $modelo->precio_base,
+            ],
+            'coloresDisponibles' => $coloresDisponibles,
+            'gradosDisponibles' => $gradosDisponibles,
+            'almacenamientosDisponibles' => $almacenamientosDisponibles,
+            'stockPorVariante' => $stockPorVariante,
+        ]);
     }
 
     public function destroy(Modelo $modelo)
