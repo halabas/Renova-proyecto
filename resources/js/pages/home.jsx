@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import TarjetaProducto from "@/components/TarjetaProducto";
+import { Link } from "@inertiajs/react";
 import Etiqueta from "@/components/etiqueta";
 import AppLayout from "@/layouts/renova-layout";
 
@@ -73,17 +74,18 @@ export default function Welcome({ modelos = [] }) {
 
             <div className="mt-10 grid justify-items-center gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {modelos.map((producto) => (
-                <TarjetaProducto
-                  key={producto.id}
-                  tipo="modelo"
-                  nombre={producto.nombre}
-                  precio={producto.precio}
-                  imagen={
-                    producto.imagen ||
-                    "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?q=80&w=900&auto=format&fit=crop"
-                  }
-                  coloresDisponibles={producto.coloresDisponibles || []}
-                />
+                <Link key={producto.id} href={`/modelos/${producto.id}`} className="w-full">
+                  <TarjetaProducto
+                    tipo="modelo"
+                    nombre={producto.nombre}
+                    precio={producto.precio}
+                    imagen={
+                      producto.imagen ||
+                      "https://i.blogs.es/3339e4/img_1199/1366_2000.jpg"
+                    }
+                    coloresDisponibles={producto.coloresDisponibles || []}
+                  />
+                </Link>
               ))}
             </div>
 

@@ -13,7 +13,6 @@ use App\Http\Controllers\BuscarController;
 use App\Http\Controllers\HomeController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
-
 Route::get('/buscar', [BuscarController::class, 'index'])->name('buscar');
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -22,7 +21,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 });
 Route::resource('marcas', MarcaController::class)->except(['show', 'create', 'edit']);
-Route::resource('modelos', ModeloController::class)->except(['create','edit','show']);
+Route::resource('modelos', ModeloController::class)->except(['create','edit']);
 Route::resource('moviles', MovilController::class)
     ->except(['create','edit','show'])
     ->parameters(['moviles' => 'movil']);
