@@ -36,4 +36,7 @@ Route::resource('reparaciones', ReparacionController::class)
     ->except(['create', 'edit', 'show'])
     ->parameters(['reparaciones' => 'reparacion']);
 
+Route::get('admin/reparaciones', [ReparacionController::class, 'admin'])
+    ->name('reparaciones.admin');
+
 require __DIR__.'/settings.php';

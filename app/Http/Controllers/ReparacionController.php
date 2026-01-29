@@ -11,6 +11,11 @@ class ReparacionController extends Controller
 {
     public function index()
     {
+        return Inertia::render('reparaciones/index');
+    }
+
+    public function admin()
+    {
         $reparaciones = Reparacion::all();
 
         return Inertia::render('crud/crud', [
@@ -20,7 +25,7 @@ class ReparacionController extends Controller
                 'nombre' => $r->nombre,
                 'precio_base' => $r->precio_base,
             ]),
-            'columnas' => ['id','nombre','precio_base'],
+            'columnas' => ['id', 'nombre', 'precio_base'],
             'campos' => [
                 ['name' => 'nombre', 'label' => 'Nombre', 'type' => 'text'],
                 ['name' => 'precio_base', 'label' => 'Precio Base', 'type' => 'number'],
