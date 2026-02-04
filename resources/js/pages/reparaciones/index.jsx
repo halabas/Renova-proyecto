@@ -2,21 +2,8 @@ import AppLayout from "@/layouts/renova-layout";
 import { Button } from "@/components/ui/button";
 import Banner from "@/components/Banner";
 import ReparacionModal from "@/components/reparaciones/ReparacionModal";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
-  BatteryCharging,
-  Camera,
-  Headphones,
-  Droplets,
-  Wifi,
-  Cpu,
-  Smartphone,
-  Wrench,
-} from "lucide-react";
+import {Collapsible,CollapsibleContent,CollapsibleTrigger} from "@/components/ui/collapsible";
+import {BatteryCharging,Camera,Headphones,Droplets,Wifi,Cpu,Smartphone,Wrench} from "lucide-react";
 
 // Reparaciones
 const servicios = [

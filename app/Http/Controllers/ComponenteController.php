@@ -8,6 +8,7 @@ use App\Models\Categoria;
 use App\Models\Modelo;
 use Inertia\Inertia;
 use Illuminate\Validation\ValidationException;
+use App\Models\ProductoCarrito;
 
 class ComponenteController extends Controller
 {
@@ -122,6 +123,17 @@ class ComponenteController extends Controller
         $marca = $componente->modelo?->marca?->nombre;
         $modelo = $componente->modelo?->nombre;
         $subtitulo = "$categoria";
+        $stockDisponible = $componente->stock;
+
+        $user = request()->user();
+        if ($user) {
+            $productoCarrito = ProductoCarrito::where('user_id', $user->id)
+                ->where('producto_type', Componente::class)
+                ->where('producto_id', $componente->id)
+                ->first();
+            $cantidadEnCarrito = $productoCarrito?->cantidad ?? 0;
+            $stockDisponible = max(0, $componente->stock - $cantidadEnCarrito);
+        }
 
         return Inertia::render('producto', [
             'tipo' => 'componente',
@@ -134,6 +146,7 @@ class ComponenteController extends Controller
                 'categoria' => $categoria,
                 'marca' => $marca,
                 'modelo' => $modelo,
+                'stock_disponible' => $stockDisponible,
             ],
         ]);
     }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ProductoCarrito;
 
 class Componente extends Model
 {
@@ -19,5 +20,10 @@ class Componente extends Model
     public function modelo()
     {
         return $this->belongsTo(Modelo::class);
+    }
+
+    public function productosCarrito()
+    {
+        return $this->morphMany(ProductoCarrito::class, 'producto');
     }
 }

@@ -7,6 +7,8 @@ use App\Models\Modelo;
 use App\Models\Marca;
 use Inertia\Inertia;
 use Illuminate\Validation\ValidationException;
+use App\Models\ProductoCarrito;
+use App\Models\Movil;
 
 class ModeloController extends Controller
 {
@@ -86,6 +88,26 @@ class ModeloController extends Controller
         foreach ($modelo->moviles as $movil) {
             $clave = $movil->color . '|' . $movil->grado . '|' . $movil->almacenamiento;
             $stockPorVariante[$clave] = $movil->stock;
+        }
+
+        $user = request()->user();
+        if ($user) {
+            $moviles_id = $modelo->moviles->pluck('id')->all();
+            $carritoMoviles = ProductoCarrito::where('user_id', $user->id)
+                ->where('producto_type', Movil::class)
+                ->whereIn('producto_id', $moviles_id)
+                ->get();
+
+            $carritoPorId = [];
+            foreach ($carritoMoviles as $item) {
+                $carritoPorId[$item->producto_id] = $item;
+            }
+
+            foreach ($modelo->moviles as $movil) {
+                $clave = $movil->color . '|' . $movil->grado . '|' . $movil->almacenamiento;
+                $cantidadEnCarrito = $carritoPorId[$movil->id]->cantidad ?? 0;
+                $stockPorVariante[$clave] = max(0, $movil->stock - $cantidadEnCarrito);
+            }
         }
 
         return Inertia::render('producto', [
