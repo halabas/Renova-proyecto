@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ProductoCarrito;
 use App\Models\Componente;
+use App\Models\Direccion;
 use App\Models\Modelo;
 use App\Models\Movil;
 use App\Models\Pedido;
@@ -23,8 +24,28 @@ class CarritoController extends Controller
             return redirect()->route('login');
         }
 
+        $direcciones = $user->direcciones()
+            ->orderByDesc('predeterminada')
+            ->orderBy('id')
+            ->get()
+            ->map(function ($direccion) {
+                return [
+                    'id' => $direccion->id,
+                    'etiqueta' => $direccion->etiqueta,
+                    'nombre' => $direccion->nombre,
+                    'apellidos' => $direccion->apellidos,
+                    'telefono' => $direccion->telefono,
+                    'direccion' => $direccion->direccion,
+                    'ciudad' => $direccion->ciudad,
+                    'provincia' => $direccion->provincia,
+                    'codigo_postal' => $direccion->codigo_postal,
+                    'predeterminada' => $direccion->predeterminada,
+                ];
+            });
+
         return Inertia::render('carrito/index', [
             'carrito' => $this->logicaCarrito($user->id),
+            'direcciones' => $direcciones,
         ]);
     }
 
@@ -202,6 +223,21 @@ class CarritoController extends Controller
                 ->with('error', 'Tu carrito está vacío.');
         }
 
+        $direccionId = $request->input('direccion_id');
+        if (! $direccionId) {
+            return redirect()->route('carrito.index')
+                ->with('error', 'Selecciona una dirección de envío.');
+        }
+
+        $direccion = Direccion::where('id', $direccionId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (! $direccion) {
+            return redirect()->route('carrito.index')
+                ->with('error', 'Selecciona una dirección válida.');
+        }
+
         $lineItems = [];
         foreach ($productosCarrito as $producto) {
             $nombre = $this->nombreProducto($producto);
@@ -231,6 +267,45 @@ class CarritoController extends Controller
                 ->with('error', 'Stripe no está configurado.');
         }
 
+        $total = 0;
+        foreach ($productosCarrito as $producto) {
+            $total += $producto->precio_unitario * $producto->cantidad;
+        }
+
+        $pedido = Pedido::create([
+            'user_id' => $user->id,
+            'estado' => 'pendiente',
+            'total' => round($total, 2),
+            'nombre' => $direccion->nombre,
+            'apellidos' => $direccion->apellidos,
+            'telefono' => $direccion->telefono,
+            'direccion' => $direccion->direccion,
+            'ciudad' => $direccion->ciudad,
+            'provincia' => $direccion->provincia,
+            'codigo_postal' => $direccion->codigo_postal,
+        ]);
+
+        foreach ($productosCarrito as $producto) {
+            $datos = null;
+            if ($producto->producto_type === Movil::class) {
+                $datos = [
+                    'color' => $producto->producto->color,
+                    'grado' => $producto->producto->grado,
+                    'almacenamiento' => $producto->producto->almacenamiento,
+                ];
+            }
+
+            PedidoProducto::create([
+                'pedido_id' => $pedido->id,
+                'producto_type' => $producto->producto_type,
+                'producto_id' => $producto->producto_id,
+                'nombre' => $this->nombreProducto($producto),
+                'precio_unitario' => $producto->precio_unitario,
+                'cantidad' => $producto->cantidad,
+                'datos' => $datos,
+            ]);
+        }
+
         Stripe::setApiKey($secret);
 
         $session = StripeSession::create([
@@ -241,6 +316,9 @@ class CarritoController extends Controller
             'success_url' => route('carrito.success') . '?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => route('carrito.cancel'),
         ]);
+
+        $pedido->stripe_sesion_id = $session->id;
+        $pedido->save();
 
         return Inertia::location($session->url);
     }
@@ -267,50 +345,37 @@ class CarritoController extends Controller
         Stripe::setApiKey($secret);
         $session = StripeSession::retrieve($sessionId);
 
-        $estado = $session->payment_status === 'paid' ? 'pagado' : 'pendiente';
-        $total = $session->amount_total ? $session->amount_total / 100 : 0;
+        if ($session->payment_status !== 'paid') {
+            return redirect()->route('carrito.index')
+                ->with('error', 'El pago no se completó.');
+        }
 
-        $pedido = Pedido::firstOrCreate(
-            ['stripe_sesion_id' => $session->id],
-            [
-                'user_id' => $user->id,
-                'estado' => $estado,
-                'total' => $total,
-            ]
-        );
+        $pedido = Pedido::where('stripe_sesion_id', $session->id)->first();
 
-        if ($pedido->wasRecentlyCreated) {
-            $productosCarrito = ProductoCarrito::with('producto')
-                ->where('user_id', $user->id)
-                ->get();
+        if (! $pedido) {
+            return redirect()->route('carrito.index')
+                ->with('error', 'No se pudo localizar el pedido.');
+        }
 
-            foreach ($productosCarrito as $producto) {
-                $datos = null;
-                if ($producto->producto_type === Movil::class) {
-                    $datos = [
-                        'color' => $producto->producto->color,
-                        'grado' => $producto->producto->grado,
-                        'almacenamiento' => $producto->producto->almacenamiento,
-                    ];
+        if ($pedido->estado !== 'pagado') {
+            $pedido->estado = 'pagado';
+            $pedido->save();
+
+            $productosPedido = PedidoProducto::where('pedido_id', $pedido->id)->get();
+
+            foreach ($productosPedido as $productoPedido) {
+                $producto = $productoPedido->producto;
+                if (! $producto) {
+                    continue;
                 }
 
-                PedidoProducto::create([
-                    'pedido_id' => $pedido->id,
-                    'producto_type' => $producto->producto_type,
-                    'producto_id' => $producto->producto_id,
-                    'nombre' => $this->nombreProducto($producto),
-                    'precio_unitario' => $producto->precio_unitario,
-                    'cantidad' => $producto->cantidad,
-                    'datos' => $datos,
-                ]);
-
-                $stockActual = $producto->producto->stock !== null ? $producto->producto->stock : 0;
-                $nuevoStock = $stockActual - $producto->cantidad;
+                $stockActual = $producto->stock !== null ? $producto->stock : 0;
+                $nuevoStock = $stockActual - $productoPedido->cantidad;
                 if ($nuevoStock < 0) {
                     $nuevoStock = 0;
                 }
-                $producto->producto->stock = $nuevoStock;
-                $producto->producto->save();
+                $producto->stock = $nuevoStock;
+                $producto->save();
             }
 
             ProductoCarrito::where('user_id', $user->id)->delete();

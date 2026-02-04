@@ -21,6 +21,8 @@ Route::middleware('auth')->group(function () {
         ->name('user-password.update');
 
     Route::get('ajustes/pedidos', [PedidosController::class, 'index'])->name('pedidos.index');
+    Route::post('ajustes/pedidos/{pedido}/pagar', [PedidosController::class, 'pagar'])->name('pedidos.pagar');
+    Route::post('ajustes/pedidos/{pedido}/cancelar', [PedidosController::class, 'cancelar'])->name('pedidos.cancelar');
 
     Route::get('ajustes/doble-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');

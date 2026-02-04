@@ -1,9 +1,10 @@
 import AppLayout from '@/layouts/renova-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+import { Button } from '@/components/ui/button';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
-import { Calendar, ChevronRight, CreditCard, Package } from 'lucide-react';
+import { Calendar, ChevronRight, Package } from 'lucide-react';
 
 type PedidoProducto = {
     id: number;
@@ -41,6 +42,9 @@ export default function Orders({ pedidos }: { pedidos: Pedido[] }) {
         }
         if (estado === 'pendiente') {
             return `${base} bg-amber-50 text-amber-700`;
+        }
+        if (estado === 'cancelado') {
+            return `${base} bg-red-50 text-red-700`;
         }
         return `${base} bg-slate-100 text-slate-700`;
     };
@@ -158,13 +162,35 @@ export default function Orders({ pedidos }: { pedidos: Pedido[] }) {
                                     </div>
 
                                     <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
-                                        <a
-                                            href={`/ajustes/pedidos/${pedido.id}/factura`}
-                                            className="inline-flex items-center gap-2 text-sm font-medium text-violet-600"
-                                        >
-                                            <CreditCard className="h-4 w-4" />
-                                            Ver factura
-                                        </a>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            {pedido.estado === 'pendiente' ? (
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="outlineGray"
+                                                    onClick={() =>
+                                                        router.post(
+                                                            `/ajustes/pedidos/${pedido.id}/cancelar`,
+                                                        )
+                                                    }
+                                                >
+                                                    Cancelar pedido
+                                                </Button>
+                                            ) : null}
+                                        </div>
+                                        {pedido.estado === 'pendiente' ? (
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                onClick={() =>
+                                                    router.post(
+                                                        `/ajustes/pedidos/${pedido.id}/pagar`,
+                                                    )
+                                                }
+                                            >
+                                                Pagar pedido
+                                            </Button>
+                                        ) : null}
                                         {pedido.productos.length > 3 ? (
                                             <button
                                                 type="button"
