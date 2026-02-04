@@ -4,13 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Pedido extends Model
+class Direccion extends Model
 {
+    protected $table = 'direcciones';
+
     protected $fillable = [
         'user_id',
-        'estado',
-        'total',
-        'stripe_sesion_id',
+        'etiqueta',
         'nombre',
         'apellidos',
         'telefono',
@@ -18,16 +18,11 @@ class Pedido extends Model
         'ciudad',
         'provincia',
         'codigo_postal',
+        'predeterminada',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
-
-    public function productos()
-    {
-        return $this->hasMany(PedidoProducto::class);
-    }
-
 }

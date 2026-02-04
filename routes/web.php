@@ -12,6 +12,7 @@ use App\Http\Controllers\ReparacionController;
 use App\Http\Controllers\BuscarController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CarritoController;
+use App\Http\Controllers\DireccionController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/buscar', [BuscarController::class, 'index'])->name('buscar');
@@ -48,5 +49,8 @@ Route::delete('carrito', [CarritoController::class, 'vaciar'])->name('carrito.va
 Route::post('carrito/checkout', [CarritoController::class, 'checkout'])->name('carrito.checkout');
 Route::get('carrito/success', [CarritoController::class, 'success'])->name('carrito.success');
 Route::get('carrito/cancel', [CarritoController::class, 'cancel'])->name('carrito.cancel');
+Route::post('direcciones', [DireccionController::class, 'store'])->name('direcciones.store');
+Route::patch('direcciones/{direccion}', [DireccionController::class, 'update'])->name('direcciones.update');
+Route::delete('direcciones/{direccion}', [DireccionController::class, 'destroy'])->name('direcciones.destroy');
 
 require __DIR__.'/settings.php';

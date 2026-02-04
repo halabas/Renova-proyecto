@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use App\Models\ProductoCarrito;
+use App\Models\Direccion;
 
 class User extends Authenticatable
 {
@@ -54,5 +55,10 @@ class User extends Authenticatable
     public function productosCarrito()
     {
         return $this->hasMany(ProductoCarrito::class);
+    }
+
+    public function direcciones()
+    {
+        return $this->hasMany(Direccion::class);
     }
 }

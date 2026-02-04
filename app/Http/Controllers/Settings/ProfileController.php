@@ -18,9 +18,30 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $direcciones = $request->user()
+            ->direcciones()
+            ->orderByDesc('predeterminada')
+            ->orderBy('id')
+            ->get()
+            ->map(function ($direccion) {
+                return [
+                    'id' => $direccion->id,
+                    'etiqueta' => $direccion->etiqueta,
+                    'nombre' => $direccion->nombre,
+                    'apellidos' => $direccion->apellidos,
+                    'telefono' => $direccion->telefono,
+                    'direccion' => $direccion->direccion,
+                    'ciudad' => $direccion->ciudad,
+                    'provincia' => $direccion->provincia,
+                    'codigo_postal' => $direccion->codigo_postal,
+                    'predeterminada' => $direccion->predeterminada,
+                ];
+            });
+
         return Inertia::render('settings/profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            'direcciones' => $direcciones,
         ]);
     }
 
