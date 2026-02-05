@@ -1,6 +1,7 @@
 import { AppHeader } from '@/components/app-header';
 import { AppContent } from '@/components/app-content';
 import { Footer } from '@/components/app-footer';
+import CookieBanner from '@/components/cookie-banner';
 import { usePage } from '@inertiajs/react';
 
 
@@ -37,6 +38,7 @@ export default function AppRenovaLayout({ children, breadcrumbs }) {
         {children}
       </AppContent>
       <Footer />
+      <CookieBanner />
     </div>
   );
 }
