@@ -36,7 +36,7 @@ export default function Busqueda({
 
   return (
     <AppLayout>
-      <div className="mx-auto w-full max-w-6xl px-6 py-8">
+      <div className="mx-auto w-full max-w-[1400px] px-6 py-8">
         <div className="mb-6">
           <h1 className="text-2xl font-semibold text-slate-900">Resultados</h1>
           <p className="text-sm text-slate-500">
@@ -207,9 +207,9 @@ export default function Busqueda({
                 }
               />
             </div>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {items.length === 0 && (
-                <div className="rounded-lg border border-slate-200 bg-white p-6 text-sm text-slate-500 sm:col-span-2 lg:col-span-3">
+                <div className="rounded-2xl border border-slate-200 bg-white p-8 text-sm text-slate-500 sm:col-span-2 lg:col-span-3">
                   Sin resultados
                 </div>
               )}

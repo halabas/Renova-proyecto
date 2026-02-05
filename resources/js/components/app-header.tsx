@@ -23,10 +23,9 @@ import AppLogo from './app-logo';
 import BarraBusqueda from '@/components/barra-busqueda';
 
 const mainNavItems: NavItem[] = [
-  { title: 'Móviles', href: '/productos' },
+  { title: 'Móviles', href: '/buscar?tipo=modelo' },
   { title: 'Reparaciones', href: '/reparaciones' },
-  { title: 'Componentes', href: '/componentes' },
-  { title: 'Blog', href: '/blog' },
+  { title: 'Componentes', href: '/buscar?tipo=componente' },
 ];
 
 const activeItemStyles = 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';

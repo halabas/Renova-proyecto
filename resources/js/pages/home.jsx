@@ -29,12 +29,16 @@ export default function Welcome({ modelos = [] }) {
           }
         >
           <div className="w-full flex flex-wrap gap-3">
-            <Button variant="default" className="rounded-full px-6">
-              Comprar Ahora
-            </Button>
-            <Button variant="outlineGray" className="rounded-full px-6">
-              Reparaciones
-            </Button>
+            <Link href="/buscar?tipo=todos">
+              <Button variant="default" className="rounded-full px-6">
+                Comprar Ahora
+              </Button>
+            </Link>
+            <Link href="/reparaciones">
+              <Button variant="outlineGray" className="rounded-full px-6">
+                Reparaciones
+              </Button>
+            </Link>
           </div>
           <div className="w-full flex flex-wrap gap-3">
             {[
@@ -81,9 +85,11 @@ export default function Welcome({ modelos = [] }) {
             </div>
 
             <div className="mt-10 flex justify-center pb-16">
-              <Button variant="secondary" className="rounded-full px-8">
-                Ver catálogo completo
-              </Button>
+              <Link href="/buscar?tipo=modelo">
+                <Button variant="secondary" className="rounded-full px-8">
+                  Ver catálogo completo
+                </Button>
+              </Link>
             </div>
           </div>
         </section>

@@ -19,9 +19,6 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/buscar', [BuscarController::class, 'index'])->name('buscar');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
 });
 Route::get('modelos/{modelo}', [ModeloController::class, 'show'])->name('modelos.show');
 Route::get('componentes/{componente}', [ComponenteController::class, 'show'])->name('componentes.show');
