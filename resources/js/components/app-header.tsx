@@ -18,7 +18,7 @@ import { useInitials } from '@/hooks/use-initials';
 import { cn, isSameUrl } from '@/lib/utils';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { ShoppingCart } from 'lucide-react';
+import { ShieldCheck, ShoppingCart } from 'lucide-react';
 import AppLogo from './app-logo';
 import BarraBusqueda from '@/components/barra-busqueda';
 
@@ -129,6 +129,43 @@ export function AppHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItem[]
                 </Link>
               </DropdownMenuContent>
             </DropdownMenu>
+            {auth.user?.is_admin ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon" variant="outlineGray" className="group h-9 w-9 cursor-pointer">
+                    <ShieldCheck className="size-5 opacity-80 group-hover:opacity-100" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end">
+                  <div className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Admin
+                  </div>
+                  <div className="flex flex-col">
+                    <Link href="/admin/marcas" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                      Marcas
+                    </Link>
+                    <Link href="/admin/modelos" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                      Modelos
+                    </Link>
+                    <Link href="/admin/moviles" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                      Móviles
+                    </Link>
+                    <Link href="/admin/componentes" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                      Componentes
+                    </Link>
+                    <Link href="/admin/categorias" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                      Categorías
+                    </Link>
+                    <Link href="/admin/reparaciones" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                      Reparaciones
+                    </Link>
+                    <Link href="/admin/devoluciones" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                      Devoluciones
+                    </Link>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : null}
             {auth.user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

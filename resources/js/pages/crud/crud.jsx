@@ -1,5 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, router, usePage } from '@inertiajs/react';
+import AppLayout from '@/layouts/renova-layout';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function Crud({ nombre_modelo, datos, columnas, campos, ObjetoEditando }) {
   const { flash } = usePage().props;
@@ -7,7 +11,6 @@ export default function Crud({ nombre_modelo, datos, columnas, campos, ObjetoEdi
   const [mensaje, setMensaje] = useState(flash.success);
   const { data: datosFormulario, setData, post, put, reset, errors } = useForm(ObjetoEditando || {});
 
-  // Actualiza el mensaje cuando cambia flash.success
   useEffect(() => {
     setMensaje(flash.success);
     if (flash.success) {
@@ -16,138 +19,143 @@ export default function Crud({ nombre_modelo, datos, columnas, campos, ObjetoEdi
     }
   }, [flash.success]);
 
-  // Actualiza los campos del formulario a la hora de realizar una acción en este.
   const actualizarCampo = (e) => setData(e.target.name, e.target.value);
 
-  // Se encarga de modificar el formulario dependiendo de si se está editando o creando un nuevo registro.
   const enviarFormulario = (e) => {
     e.preventDefault();
 
     if (editando) {
-      put(`/${nombre_modelo}/${datosFormulario.id}`, {
+      put(`/admin/${nombre_modelo}/${datosFormulario.id}`, {
         onSuccess: () => { reset(); setEditando(false); },
       });
     } else {
-      post(`/${nombre_modelo}`, {
+      post(`/admin/${nombre_modelo}`, {
         onSuccess: () => { reset(); setEditando(false); },
       });
     }
   };
 
-  // Función que se encarga de activar el modo edición del formulario.
   const modoEditar = (item) => {
     setEditando(true);
     setData(item);
   };
 
-  // Cancela la edición y borra el formulario
   const cancelarEdicion = () => {
     reset();
     setEditando(false);
   };
 
-  // Elimina un registro con confirmación
   const eliminar = (id) => {
-    if (confirm('¿Seguro que quieres eliminarlo? Borrara tambien los registros relacionados.')) {
-      router.delete(`/${nombre_modelo}/${id}`);
+    if (confirm('¿Seguro que quieres eliminarlo? Borrará también los registros relacionados.')) {
+      router.delete(`/admin/${nombre_modelo}/${id}`);
     }
   };
 
-  // Estilos temporales
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">{nombre_modelo.toUpperCase()}</h1>
-
-      {mensaje && (
-        <div className="bg-green-500 text-white p-2 rounded mb-4 flex justify-between items-center">
-          <span>{mensaje}</span>
-          <button onClick={() => setMensaje(null)} className="font-bold px-2">X</button>
+    <AppLayout>
+      <div className="mx-auto w-full max-w-5xl px-6 py-8">
+        <div className="mb-6 text-center">
+          <p className="text-xs uppercase tracking-wide text-slate-400">Admin</p>
+          <h1 className="text-2xl font-semibold text-slate-900">
+            {nombre_modelo.toUpperCase()}
+          </h1>
         </div>
-      )}
 
-      <form onSubmit={enviarFormulario} className="mb-6 border p-4 rounded">
-        {campos.map((camp) => (
-          <div key={camp.name} className="mb-2">
-            <label className="block font-medium ">{camp.label}</label>
-            {camp.type === 'select' ? (
-              <select
-                name={camp.name}
-                value={datosFormulario[camp.name] || ''}
-                onChange={actualizarCampo}
-                className="border rounded px-2 py-1 w-full "
-              >
-                <option className="text-black" value="">Selecciona una opción</option>
-                {camp.options.map((opcion) => (
-                  <option key={opcion.value} value={opcion.value} className='text-black'>
-                    {opcion.label}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <input
-                type={camp.type || 'text'}
-                name={camp.name}
-                value={datosFormulario[camp.name] || ''}
-                onChange={actualizarCampo}
-                className="border rounded px-2 py-1 w-full"
-              />
-            )}
-
-            {errors[camp.name] && (
-              <p className="text-red-500 text-sm mt-1">{errors[camp.name]}</p>
-            )}
+        {mensaje && (
+          <div className="mb-6 flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700">
+            <span className="text-sm font-medium">{mensaje}</span>
+            <button onClick={() => setMensaje(null)} className="text-sm font-semibold">Cerrar</button>
           </div>
-        ))}
+        )}
 
-        <div className="flex gap-2">
-          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-            {editando ? 'Actualizar' : 'Crear'}
-          </button>
-          {editando && (
-            <button
-              type="button"
-              onClick={cancelarEdicion}
-              className="bg-gray-400 text-white px-4 py-2 rounded"
-            >
-              Cancelar
-            </button>
-          )}
-        </div>
-      </form>
+        <div className="mb-8 mx-auto max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-900">
+            {editando ? 'Editar registro' : 'Crear registro'}
+          </h2>
+          <p className="text-sm text-slate-500">
+            Completa los campos y guarda los cambios.
+          </p>
 
-      <table className="w-full border-collapse border">
-        <thead>
-          <tr>
-            {columnas.map((col) => (
-              <th key={col} className="border px-2 py-1">{col.toUpperCase()}</th>
+          <form onSubmit={enviarFormulario} className="mt-6 grid gap-4 md:grid-cols-2">
+            {campos.map((camp) => (
+              <div key={camp.name} className="flex flex-col gap-2">
+                <Label htmlFor={camp.name}>{camp.label}</Label>
+                {camp.type === 'select' ? (
+                  <select
+                    id={camp.name}
+                    name={camp.name}
+                    value={datosFormulario[camp.name] || ''}
+                    onChange={actualizarCampo}
+                    className="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 focus:border-transparent focus:ring-2 focus:ring-violet-400"
+                  >
+                    <option value="">Selecciona una opción</option>
+                    {camp.options.map((opcion) => (
+                      <option key={opcion.value} value={opcion.value}>
+                        {opcion.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <Input
+                    id={camp.name}
+                    name={camp.name}
+                    type={camp.type || 'text'}
+                    value={datosFormulario[camp.name] || ''}
+                    onChange={actualizarCampo}
+                    error={errors[camp.name]}
+                  />
+                )}
+                {errors[camp.name] && camp.type === 'select' ? (
+                  <p className="text-sm text-red-500">{errors[camp.name]}</p>
+                ) : null}
+              </div>
             ))}
-            <th className="border px-2 py-1">ACCIONES</th>
-          </tr>
-        </thead>
-        <tbody>
-          {datos.map((objeto) => (
-            <tr key={objeto.id}>
-              {columnas.map((col) => (
-                <td key={col} className="border px-2 py-1">{objeto[col]}</td>
+
+            <div className="mt-4 flex flex-wrap gap-2 md:col-span-2">
+              <Button type="submit">{editando ? 'Actualizar' : 'Crear'}</Button>
+              {editando && (
+                <Button type="button" variant="outlineGray" onClick={cancelarEdicion}>
+                  Cancelar
+                </Button>
+              )}
+            </div>
+          </form>
+        </div>
+
+        <div className="mx-auto max-w-4xl overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 text-center text-xs font-semibold uppercase text-slate-500">
+              <tr>
+                {columnas.map((col) => (
+                  <th key={col} className="px-4 py-3">{col}</th>
+                ))}
+                <th className="px-4 py-3">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {datos.map((objeto) => (
+                <tr key={objeto.id} className="hover:bg-slate-50 text-center">
+                  {columnas.map((col) => (
+                    <td key={col} className="px-4 py-3 text-slate-700">
+                      {objeto[col]}
+                    </td>
+                  ))}
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <Button size="sm" variant="outlineGray" onClick={() => modoEditar(objeto)}>
+                        Editar
+                      </Button>
+                      <Button size="sm" variant="delete" onClick={() => eliminar(objeto.id)}>
+                        Eliminar
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
               ))}
-              <td className="border px-2 py-1 flex gap-2">
-                <button
-                  onClick={() => modoEditar(objeto)}
-                  className="bg-yellow-400 text-white px-2 py-1 rounded"
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => eliminar(objeto.id)}
-                  className="bg-red-500 text-white px-2 py-1 rounded"
-                >
-                  Borrar
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </AppLayout>
   );
 }

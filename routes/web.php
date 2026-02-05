@@ -23,32 +23,35 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 });
-Route::resource('marcas', MarcaController::class)->except(['show', 'create', 'edit']);
-Route::resource('modelos', ModeloController::class)->except(['create','edit']);
-Route::resource('moviles', MovilController::class)
-    ->except(['create','edit','show'])
-    ->parameters(['moviles' => 'movil']);
-Route::resource('categorias', CategoriaController::class)
-    ->except(['create', 'edit', 'show']);
+Route::get('modelos/{modelo}', [ModeloController::class, 'show'])->name('modelos.show');
+Route::get('componentes/{componente}', [ComponenteController::class, 'show'])->name('componentes.show');
+Route::get('reparaciones', [ReparacionController::class, 'index'])->name('reparaciones.index');
 
-Route::resource('componentes', ComponenteController::class)
-    ->except(['create','edit']);
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::resource('marcas', MarcaController::class)->except(['show', 'create', 'edit']);
+    Route::resource('modelos', ModeloController::class)->except(['create','edit','show']);
+    Route::resource('moviles', MovilController::class)
+        ->except(['create','edit','show'])
+        ->parameters(['moviles' => 'movil']);
+    Route::resource('categorias', CategoriaController::class)
+        ->except(['create', 'edit', 'show']);
+    Route::resource('componentes', ComponenteController::class)
+        ->except(['create','edit','show']);
+    Route::resource('reparaciones', ReparacionController::class)
+        ->except(['create', 'edit', 'show','index'])
+        ->parameters(['reparaciones' => 'reparacion']);
 
-
-Route::resource('reparaciones', ReparacionController::class)
-    ->except(['create', 'edit', 'show'])
-    ->parameters(['reparaciones' => 'reparacion']);
-
-Route::get('admin/reparaciones', [ReparacionController::class, 'admin'])
-    ->name('reparaciones.admin');
-Route::get('admin/devoluciones', [DevolucionController::class, 'index'])
-    ->name('devoluciones.index');
-Route::post('admin/devoluciones/{devolucion}/aprobar', [DevolucionController::class, 'aprobar'])
-    ->name('devoluciones.aprobar');
-Route::post('admin/devoluciones/{devolucion}/rechazar', [DevolucionController::class, 'rechazar'])
-    ->name('devoluciones.rechazar');
-Route::post('admin/devoluciones/{devolucion}/reembolsar', [DevolucionController::class, 'reembolsar'])
-    ->name('devoluciones.reembolsar');
+    Route::get('reparaciones', [ReparacionController::class, 'admin'])
+        ->name('reparaciones.admin');
+    Route::get('devoluciones', [DevolucionController::class, 'index'])
+        ->name('devoluciones.index');
+    Route::post('devoluciones/{devolucion}/aprobar', [DevolucionController::class, 'aprobar'])
+        ->name('devoluciones.aprobar');
+    Route::post('devoluciones/{devolucion}/rechazar', [DevolucionController::class, 'rechazar'])
+        ->name('devoluciones.rechazar');
+    Route::post('devoluciones/{devolucion}/reembolsar', [DevolucionController::class, 'reembolsar'])
+        ->name('devoluciones.reembolsar');
+});
 
 Route::get('carrito', [CarritoController::class, 'index'])->name('carrito.index');
 Route::post('carrito/productos', [CarritoController::class, 'store'])->name('carrito.store');
