@@ -5,6 +5,9 @@ namespace App\Http\Middleware;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Models\ProductoCarrito;
+use App\Models\Movil;
+use App\Models\Componente;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -45,6 +48,57 @@ public function share(Request $request): array
         'auth' => [
             'user' => $request->user(),
         ],
+        'carritoResumen' => function () use ($request) {
+            $user = $request->user();
+            if (! $user) {
+                return [
+                    'cantidad' => 0,
+                    'subtotal' => 0,
+                    'productos' => [],
+                ];
+            }
+
+            $filas = ProductoCarrito::with('producto')
+                ->where('user_id', $user->id)
+                ->get();
+
+            $cantidad = 0;
+            $subtotal = 0;
+            $productos = [];
+
+            foreach ($filas as $fila) {
+                $cantidad += $fila->cantidad;
+                $subtotal += $fila->precio_unitario * $fila->cantidad;
+
+                $nombre = 'Producto';
+                $detalle = null;
+
+                if ($fila->producto_type === Movil::class && $fila->producto) {
+                    $modelo = $fila->producto->modelo;
+                    $marca = $modelo?->marca?->nombre;
+                    $nombre = trim(($marca ? $marca.' ' : '').($modelo?->nombre ?? ''));
+                    $detalle = $fila->producto->color.' · '.$fila->producto->grado.' · '.$fila->producto->almacenamiento.'GB';
+                }
+
+                if ($fila->producto_type === Componente::class && $fila->producto) {
+                    $nombre = $fila->producto->nombre;
+                }
+
+                $productos[] = [
+                    'id' => $fila->id,
+                    'nombre' => $nombre,
+                    'detalle' => $detalle,
+                    'cantidad' => $fila->cantidad,
+                    'precio' => (float) $fila->precio_unitario,
+                ];
+            }
+
+            return [
+                'cantidad' => $cantidad,
+                'subtotal' => round($subtotal, 2),
+                'productos' => $productos,
+            ];
+        },
         'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         'flash' => [
             'success' => fn() => $request->session()->get('success'),

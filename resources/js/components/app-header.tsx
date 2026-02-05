@@ -33,7 +33,7 @@ const activeItemStyles = 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral
 
 export function AppHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItem[] }) {
   const page = usePage<SharedData>();
-  const { auth } = page.props;
+  const { auth, carritoResumen } = page.props;
   const getInitials = useInitials();
 
   return (
@@ -77,9 +77,58 @@ export function AppHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItem[]
             <div className="hidden md:block">
       <BarraBusqueda />
             </div>
-            <Button size="icon" variant="outlineGray" className="group h-9 w-9 cursor-pointer">
-              <ShoppingCart className="size-5 opacity-80 group-hover:opacity-100" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="outlineGray" className="group h-9 w-9 cursor-pointer">
+                  <ShoppingCart className="size-5 opacity-80 group-hover:opacity-100" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-80 p-4" align="end">
+                <div className="mb-3">
+                  <p className="text-sm font-semibold text-slate-900">Carrito</p>
+                  <p className="text-xs text-slate-500">
+                    {carritoResumen?.cantidad || 0} productos
+                  </p>
+                </div>
+
+                {carritoResumen?.productos?.length ? (
+                  <div className="max-h-64 space-y-3 overflow-y-auto pr-1">
+                    {carritoResumen.productos.map((producto) => (
+                      <div key={producto.id} className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-medium text-slate-900">{producto.nombre}</p>
+                          {producto.detalle ? (
+                            <p className="text-xs text-slate-500">{producto.detalle}</p>
+                          ) : null}
+                          <p className="text-xs text-slate-500">
+                            {producto.cantidad} x {producto.precio.toFixed(2)} €
+                          </p>
+                        </div>
+                        <p className="text-sm font-semibold text-slate-900">
+                          {(producto.precio * producto.cantidad).toFixed(2)} €
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-slate-200 p-3 text-xs text-slate-500">
+                    Tu carrito está vacío.
+                  </div>
+                )}
+
+                <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3">
+                  <span className="text-sm font-semibold text-slate-900">Subtotal</span>
+                  <span className="text-sm font-semibold text-slate-900">
+                    {(carritoResumen?.subtotal || 0).toFixed(2)} €
+                  </span>
+                </div>
+                <Link href="/carrito" className="mt-3 block">
+                  <Button className="w-full" size="sm">
+                    Ver carrito
+                  </Button>
+                </Link>
+              </DropdownMenuContent>
+            </DropdownMenu>
             {auth.user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
