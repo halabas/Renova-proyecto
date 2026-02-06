@@ -74,6 +74,8 @@ class ProfileController extends Controller
 
         Auth::logout();
 
+        $user->email = 'borrado' . $user->id . '@renova.com';
+        $user->save();
         $user->delete();
 
         $request->session()->invalidate();

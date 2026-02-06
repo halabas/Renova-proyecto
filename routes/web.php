@@ -14,6 +14,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\DireccionController;
 use App\Http\Controllers\DevolucionController;
+use App\Http\Controllers\Admin\UsuarioController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/buscar', [BuscarController::class, 'index'])->name('buscar');
@@ -40,6 +41,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 
     Route::get('reparaciones', [ReparacionController::class, 'admin'])
         ->name('reparaciones.admin');
+    Route::get('usuarios', [UsuarioController::class, 'index'])
+        ->name('usuarios.index');
+    Route::delete('usuarios/{user}', [UsuarioController::class, 'destroy'])
+        ->name('usuarios.destroy');
     Route::get('devoluciones', [DevolucionController::class, 'index'])
         ->name('devoluciones.index');
     Route::post('devoluciones/{devolucion}/aprobar', [DevolucionController::class, 'aprobar'])
