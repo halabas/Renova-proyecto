@@ -76,7 +76,9 @@ class ProfileUpdateTest extends TestCase
             ->assertRedirect(route('home'));
 
         $this->assertGuest();
-        $this->assertNull($user->fresh());
+        $this->assertSoftDeleted($user);
+        $user->refresh();
+        $this->assertSame('borrado+' . $user->id . '@renova.com', $user->email);
     }
 
     public function test_correct_password_must_be_provided_to_delete_account()
