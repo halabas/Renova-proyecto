@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-class PedidosController extends Controller
+class AdminPedidosController extends Controller
 {
     public function index(Request $request)
     {
@@ -18,6 +18,7 @@ class PedidosController extends Controller
         $anio = $request->query('anio');
         $estado = $request->query('estado', 'todos');
         $usuario = $request->query('usuario');
+        $estadoEnvio = $request->query('estado_envio', 'todos');
         $fechaDesde = $request->query('fecha_desde');
         $fechaHasta = $request->query('fecha_hasta');
 
@@ -80,6 +81,10 @@ class PedidosController extends Controller
             $consultaListado->where('estado', $estado);
         }
 
+        if ($estadoEnvio && $estadoEnvio !== 'todos') {
+            $consultaListado->where('estado_envio', $estadoEnvio);
+        }
+
         if ($usuario) {
             $consultaListado->whereHas('user', function ($query) use ($usuario) {
                 $query->where('name', 'ilike', '%'.$usuario.'%')
@@ -104,6 +109,9 @@ class PedidosController extends Controller
                     'estado' => $pedido->estado,
                     'total' => (float) $pedido->total,
                     'fecha' => $pedido->created_at?->format('d/m/Y H:i'),
+                    'estado_envio' => $pedido->estado_envio ?? 'pendiente',
+                    'enviado_at' => $pedido->enviado_at?->format('d/m/Y H:i'),
+                    'recibido_at' => $pedido->recibido_at?->format('d/m/Y H:i'),
                     'usuario' => [
                         'id' => $pedido->user?->id,
                         'nombre' => $pedido->user?->name,
@@ -139,6 +147,7 @@ class PedidosController extends Controller
             'anios' => $aniosDisponibles,
             'filtros' => [
                 'estado' => $estado,
+                'estado_envio' => $estadoEnvio,
                 'usuario' => $usuario,
                 'fecha_desde' => $fechaDesde,
                 'fecha_hasta' => $fechaHasta,
@@ -161,5 +170,25 @@ class PedidosController extends Controller
         ]);
 
         return $pdf->stream('factura-pedido-'.$pedido->id.'.pdf');
+    }
+
+    public function enviar(Request $request, Pedido $pedido)
+    {
+        if ($pedido->estado !== 'pagado') {
+            return redirect()->route('admin.pedidos.index')
+                ->with('error', 'Solo puedes enviar pedidos pagados.');
+        }
+
+        if ($pedido->estado_envio === 'enviado' || $pedido->estado_envio === 'entregado' || $pedido->estado_envio === 'cancelado') {
+            return redirect()->route('admin.pedidos.index')
+                ->with('error', 'Este pedido ya está enviado.');
+        }
+
+        $pedido->estado_envio = 'enviado';
+        $pedido->enviado_at = now();
+        $pedido->save();
+
+        return redirect()->route('admin.pedidos.index')
+            ->with('success', 'Pedido marcado como enviado.');
     }
 }

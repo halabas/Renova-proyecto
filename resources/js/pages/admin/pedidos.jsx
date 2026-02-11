@@ -32,6 +32,15 @@ export default function AdminPedidos({ pedidos, resumen, series, rango, anio, an
     return 'bg-slate-100 text-slate-700';
   };
 
+  const claseEnvio = (estado) => {
+    if (estado === 'entregado') {
+      return 'bg-emerald-50 text-emerald-700';
+    }
+    if (estado === 'enviado') {
+      return 'bg-sky-50 text-sky-700';
+    }
+    return 'bg-amber-50 text-amber-700';
+  };
   const cambiarRango = (nuevoRango) => {
     router.get(
       '/admin/pedidos',
@@ -39,6 +48,7 @@ export default function AdminPedidos({ pedidos, resumen, series, rango, anio, an
         rango: nuevoRango,
         anio,
         estado: filtros?.estado || 'todos',
+        estado_envio: filtros?.estado_envio || 'todos',
         usuario: filtros?.usuario || '',
         fecha_desde: filtros?.fecha_desde || '',
         fecha_hasta: filtros?.fecha_hasta || '',
@@ -55,6 +65,7 @@ export default function AdminPedidos({ pedidos, resumen, series, rango, anio, an
         rango,
         anio: valor,
         estado: filtros?.estado || 'todos',
+        estado_envio: filtros?.estado_envio || 'todos',
         usuario: filtros?.usuario || '',
         fecha_desde: filtros?.fecha_desde || '',
         fecha_hasta: filtros?.fecha_hasta || '',
@@ -72,6 +83,7 @@ export default function AdminPedidos({ pedidos, resumen, series, rango, anio, an
         rango,
         anio,
         estado: form.get('estado'),
+        estado_envio: form.get('estado_envio'),
         usuario: form.get('usuario'),
         fecha_desde: form.get('fecha_desde'),
         fecha_hasta: form.get('fecha_hasta'),
@@ -207,9 +219,9 @@ export default function AdminPedidos({ pedidos, resumen, series, rango, anio, an
         </div>
 
         <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5">
-          <form onSubmit={aplicarFiltros} className="grid gap-4 md:grid-cols-[1fr_1fr_1fr_1fr_auto]">
+          <form onSubmit={aplicarFiltros} className="grid gap-4 md:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto]">
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold uppercase text-slate-400">Estado</label>
+              <label className="text-xs font-semibold uppercase text-slate-400">Estado de pago</label>
               <select
                 name="estado"
                 defaultValue={filtros?.estado || 'todos'}
@@ -219,6 +231,19 @@ export default function AdminPedidos({ pedidos, resumen, series, rango, anio, an
                 <option value="pagado">Pagado</option>
                 <option value="pendiente">Pendiente</option>
                 <option value="cancelado">Cancelado</option>
+              </select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-semibold uppercase text-slate-400">Estado de envío</label>
+              <select
+                name="estado_envio"
+                defaultValue={filtros?.estado_envio || 'todos'}
+                className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm"
+              >
+                <option value="todos">Todos</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="enviado">Enviado</option>
+                <option value="entregado">Entregado</option>
               </select>
             </div>
             <div className="flex flex-col gap-2">
@@ -264,6 +289,9 @@ export default function AdminPedidos({ pedidos, resumen, series, rango, anio, an
           <div className="space-y-5">
             {pedidos.map((pedido) => {
               const estaAbierto = Boolean(pedidosAbiertos[pedido.id]);
+              const estadoEnvio = pedido.estado === 'cancelado'
+                ? 'cancelado'
+                : (pedido.estado_envio || 'pendiente');
               const productosVisibles = estaAbierto
                 ? pedido.productos
                 : pedido.productos.slice(0, 3);
@@ -283,9 +311,20 @@ export default function AdminPedidos({ pedidos, resumen, series, rango, anio, an
                           <p className="text-sm font-semibold text-slate-900">
                             Pedido #{pedido.id}
                           </p>
-                          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${claseEstado(pedido.estado)}`}>
-                            {pedido.estado}
-                          </span>
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
+                            <span className="text-slate-400">Pago</span>
+                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${claseEstado(pedido.estado)}`}>
+                              {pedido.estado}
+                            </span>
+                            {pedido.estado !== 'cancelado' ? (
+                              <>
+                                <span className="text-slate-400">Envío</span>
+                                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${claseEnvio(estadoEnvio)}`}>
+                                  {estadoEnvio}
+                                </span>
+                              </>
+                            ) : null}
+                          </div>
                         </div>
                         <p className="text-xs text-slate-500">{pedido.fecha}</p>
                         {pedido.usuario ? (
@@ -359,6 +398,15 @@ export default function AdminPedidos({ pedidos, resumen, series, rango, anio, an
 
                   <div className="mt-4 grid items-center gap-4 md:grid-cols-[1fr_auto]">
                     <div className="flex flex-wrap items-center gap-2">
+                      {pedido.estado === 'pagado' && estadoEnvio === 'pendiente' ? (
+                        <Button
+                          size="sm"
+                          variant="outlineGray"
+                          onClick={() => router.post(`/admin/pedidos/${pedido.id}/enviar`)}
+                        >
+                          Marcar como enviado
+                        </Button>
+                      ) : null}
                       {pedido.estado === 'pagado' ? (
                         <a
                           href={`/admin/pedidos/${pedido.id}/factura`}

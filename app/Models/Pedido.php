@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pedido extends Model
 {
+    protected $casts = [
+        'enviado_at' => 'datetime',
+        'recibido_at' => 'datetime',
+    ];
     protected $fillable = [
         'user_id',
         'estado',
@@ -18,6 +22,9 @@ class Pedido extends Model
         'ciudad',
         'provincia',
         'codigo_postal',
+        'estado_envio',
+        'enviado_at',
+        'recibido_at',
     ];
 
     public function user()
