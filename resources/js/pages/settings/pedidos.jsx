@@ -46,6 +46,17 @@ export default function Orders({ pedidos }) {
         return `${base} bg-slate-100 text-slate-700`;
     };
 
+    const estadoEnvioClasses = (estado) => {
+        const base = 'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold';
+        if (estado === 'entregado') {
+            return `${base} bg-emerald-50 text-emerald-700`;
+        }
+        if (estado === 'enviado') {
+            return `${base} bg-sky-50 text-sky-700`;
+        }
+        return `${base} bg-amber-50 text-amber-700`;
+    };
+
     const formatoTotal = (total) => total.toFixed(2);
 
     const abrirModalDevolucion = (pedido) => {
@@ -184,6 +195,9 @@ export default function Orders({ pedidos }) {
                             {pedidos.map((pedido) => (
                                 (() => {
                                     const estaAbierto = Boolean(pedidosAbiertos[pedido.id]);
+                                    const estadoEnvio = pedido.estado === 'cancelado'
+                                        ? 'cancelado'
+                                        : (pedido.estado_envio || 'pendiente');
                                     const productosVisibles = estaAbierto
                                         ? pedido.productos
                                         : pedido.productos.slice(0, 3);
@@ -206,6 +220,11 @@ export default function Orders({ pedidos }) {
                                                     <span className={estadoClasses(pedido.estado)}>
                                                         {pedido.estado}
                                                     </span>
+                                                    {pedido.estado !== 'cancelado' ? (
+                                                        <span className={estadoEnvioClasses(estadoEnvio)}>
+                                                            {estadoEnvio}
+                                                        </span>
+                                                    ) : null}
                                                 </div>
                                                 <div className="flex items-center gap-2 text-sm text-slate-500">
                                                     <Calendar className="h-4 w-4" />
@@ -272,7 +291,9 @@ export default function Orders({ pedidos }) {
 
                                     <div className="mt-4 grid items-center gap-4 md:grid-cols-[1fr_auto]">
                                         <div className="flex flex-wrap items-center gap-2">
-                                            {pedido.estado === 'pendiente' ? (
+                                            {(pedido.estado === 'pendiente' ||
+                                              (pedido.estado === 'pagado' &&
+                                                pedido.estado_envio === 'pendiente')) ? (
                                                 <Button
                                                     type="button"
                                                     size="sm"
@@ -297,6 +318,21 @@ export default function Orders({ pedidos }) {
                                                     </Button>
                                                 </a>
                                             ) : null}
+                                            {pedido.estado === 'pagado' &&
+                                            estadoEnvio === 'enviado' ? (
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="outlineGray"
+                                                    onClick={() =>
+                                                        router.post(
+                                                            `/ajustes/pedidos/${pedido.id}/recibido`,
+                                                        )
+                                                    }
+                                                >
+                                                    Marcar como recibido
+                                                </Button>
+                                            ) : null}
                                             {pedido.devolucion ? (
                                                 <span className="text-xs text-slate-500">
                                                     Devolución: {pedido.devolucion.estado}
@@ -310,7 +346,7 @@ export default function Orders({ pedidos }) {
                                                     El plazo de devolución ha terminado. Para tramitar garantía escribe a Renova@support.com
                                                 </span>
                                             ) : null}
-                                            {puedeSolicitarDevolucion(pedido) ? (
+                                            {pedido.estado_envio === 'entregado' && puedeSolicitarDevolucion(pedido) ? (
                                                 <Button
                                                     type="button"
                                                     size="sm"

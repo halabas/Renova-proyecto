@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Stripe\Checkout\Session as StripeSession;
 use Stripe\Stripe;
+use Stripe\Refund;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class PedidosController extends Controller
@@ -29,6 +30,9 @@ class PedidosController extends Controller
                     'total' => (float) $pedido->total,
                     'fecha' => $pedido->created_at?->format('d/m/Y H:i'),
                     'created_at' => $pedido->created_at?->toIso8601String(),
+                    'estado_envio' => $pedido->estado_envio,
+                    'enviado_at' => $pedido->enviado_at?->format('d/m/Y H:i'),
+                    'recibido_at' => $pedido->recibido_at?->format('d/m/Y H:i'),
                     'productos' => $pedido->productos->map(function ($producto) {
                         return [
                             'id' => $producto->id,
@@ -158,6 +162,11 @@ class PedidosController extends Controller
                 ->with('error', 'Solo puedes solicitar devoluciones de pedidos pagados.');
         }
 
+        if ($pedido->estado_envio !== 'entregado') {
+            return redirect()->route('pedidos.index')
+                ->with('error', 'Solo puedes solicitar devoluciones de pedidos entregados.');
+        }
+
         if ($pedido->devolucion) {
             return redirect()->route('pedidos.index')
                 ->with('error', 'Ya hay una devolución registrada para este pedido.');
@@ -192,14 +201,40 @@ class PedidosController extends Controller
             return redirect()->route('login');
         }
 
-        if ($pedido->estado === 'pagado') {
-            return redirect()->route('pedidos.index')
-                ->with('error', 'No puedes cancelar un pedido pagado.');
-        }
-
         if ($pedido->estado === 'cancelado') {
             return redirect()->route('pedidos.index')
                 ->with('error', 'Este pedido ya está cancelado.');
+        }
+
+        if ($pedido->estado === 'pagado') {
+            if ($pedido->estado_envio !== 'pendiente') {
+                return redirect()->route('pedidos.index')
+                    ->with('error', 'No puedes cancelar un pedido ya enviado.');
+            }
+
+            if (! $pedido->stripe_sesion_id) {
+                return redirect()->route('pedidos.index')
+                    ->with('error', 'No se encontró información de pago.');
+            }
+
+            $secret = config('services.stripe.secret');
+            if (! $secret) {
+                return redirect()->route('pedidos.index')
+                    ->with('error', 'Stripe no está configurado.');
+            }
+
+            Stripe::setApiKey($secret);
+            $session = StripeSession::retrieve($pedido->stripe_sesion_id);
+            $paymentIntentId = $session->payment_intent;
+
+            if (! $paymentIntentId) {
+                return redirect()->route('pedidos.index')
+                    ->with('error', 'No se pudo localizar el pago.');
+            }
+
+            Refund::create([
+                'payment_intent' => $paymentIntentId,
+            ]);
         }
 
         $pedido->estado = 'cancelado';
@@ -207,5 +242,30 @@ class PedidosController extends Controller
 
         return redirect()->route('pedidos.index')
             ->with('success', 'Pedido cancelado.');
+    }
+
+    public function marcarRecibido(Request $request, Pedido $pedido)
+    {
+        $user = $request->user();
+        if (! $user || $pedido->user_id !== $user->id) {
+            return redirect()->route('login');
+        }
+
+        if ($pedido->estado !== 'pagado') {
+            return redirect()->route('pedidos.index')
+                ->with('error', 'Solo puedes confirmar pedidos pagados.');
+        }
+
+        if ($pedido->estado_envio !== 'enviado') {
+            return redirect()->route('pedidos.index')
+                ->with('error', 'Este pedido aún no está en reparto.');
+        }
+
+        $pedido->estado_envio = 'entregado';
+        $pedido->recibido_at = now();
+        $pedido->save();
+
+        return redirect()->route('pedidos.index')
+            ->with('success', 'Pedido marcado como recibido.');
     }
 }
