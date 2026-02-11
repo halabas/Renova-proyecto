@@ -6,13 +6,13 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class ComprobarAdmin
+class ComprobarGestionReparaciones
 {
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
 
-        if (! $user || $user->rol !== 'admin') {
+        if (! $user || ! in_array($user->rol, ['admin', 'tecnico'], true)) {
             return redirect()->route('home')
                 ->with('error', 'No tienes permisos para acceder.');
         }

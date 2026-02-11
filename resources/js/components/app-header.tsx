@@ -128,7 +128,7 @@ export function AppHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItem[]
                 </Link>
               </DropdownMenuContent>
             </DropdownMenu>
-            {auth.user?.is_admin ? (
+            {auth.user?.rol === 'admin' ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button size="icon" variant="outlineGray" className="group h-9 w-9 cursor-pointer">
@@ -164,8 +164,30 @@ export function AppHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItem[]
                     <Link href="/admin/pedidos" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
                       Pedidos
                     </Link>
+                    <Link href="/admin/solicitudes-reparacion" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                      Solicitudes reparación
+                    </Link>
                     <Link href="/admin/usuarios" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
                       Usuarios
+                    </Link>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : null}
+            {auth.user?.rol === 'tecnico' ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon" variant="outlineGray" className="group h-9 w-9 cursor-pointer">
+                    <ShieldCheck className="size-5 opacity-80 group-hover:opacity-100" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end">
+                  <div className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Tecnico
+                  </div>
+                  <div className="flex flex-col">
+                    <Link href="/admin/solicitudes-reparacion" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                      Solicitudes reparacion
                     </Link>
                   </div>
                 </DropdownMenuContent>

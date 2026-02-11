@@ -4,6 +4,7 @@ use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\PedidosController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
+use App\Http\Controllers\SolicitudReparacionController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -26,6 +27,7 @@ Route::middleware('auth')->group(function () {
     Route::post('ajustes/pedidos/{pedido}/devolucion', [PedidosController::class, 'solicitarDevolucion'])->name('pedidos.devolucion');
 Route::post('ajustes/pedidos/{pedido}/cancelar', [PedidosController::class, 'cancelar'])->name('pedidos.cancelar');
 Route::post('ajustes/pedidos/{pedido}/recibido', [PedidosController::class, 'marcarRecibido'])->name('pedidos.recibido');
+    Route::get('ajustes/reparaciones', [SolicitudReparacionController::class, 'userIndex'])->name('solicitudes-reparacion.user.index');
 
     Route::get('ajustes/doble-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');

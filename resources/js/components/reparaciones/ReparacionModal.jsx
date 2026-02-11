@@ -5,12 +5,35 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {Select,SelectContent,SelectItem,SelectTrigger,SelectValue} from "@/components/ui/select";
 import { Home, Send } from "lucide-react";
+import { useForm } from "@inertiajs/react";
 
 
 export default function ReparacionModal() {
+  const [abierto, setAbierto] = useState(false);
   const [modalidad, setModalidad] = useState("envio");
+  const { data, setData, post, processing, errors, reset } = useForm({
+    nombre_completo: "",
+    telefono: "",
+    email: "",
+    modelo_dispositivo: "",
+    tipo_problema: "",
+    descripcion: "",
+    modalidad: "envio",
+  });
+
+  const enviar = (e) => {
+    e.preventDefault();
+    post("/reparaciones/solicitudes", {
+      onSuccess: () => {
+        reset();
+        setModalidad("envio");
+        setAbierto(false);
+      },
+    });
+  };
+
   return (
-    <Dialog>
+    <Dialog open={abierto} onOpenChange={setAbierto}>
       <DialogTrigger asChild>
         <Button>Seleccionar reparación</Button>
       </DialogTrigger>
@@ -24,17 +47,27 @@ export default function ReparacionModal() {
           </DialogDescription>
         </DialogHeader>
 
-        <form className="mt-10 space-y-8">
+        <form className="mt-10 space-y-8" onSubmit={enviar}>
           <div className="space-y-6">
             <h3 className="text-2xl font-medium text-slate-900">
               Información Personal
             </h3>
             <div className="grid gap-6 md:grid-cols-2">
-              <Input label="Nombre completo" required placeholder="Nombre y apellidos" />
+              <Input
+                label="Nombre completo"
+                required
+                placeholder="Nombre y apellidos"
+                value={data.nombre_completo}
+                onChange={(e) => setData("nombre_completo", e.target.value)}
+                error={errors.nombre_completo}
+              />
               <Input
                 label="Teléfono"
                 required
                 placeholder="Número con prefijo"
+                value={data.telefono}
+                onChange={(e) => setData("telefono", e.target.value)}
+                error={errors.telefono}
               />
             </div>
             <Input
@@ -42,6 +75,9 @@ export default function ReparacionModal() {
               required
               placeholder="tu@correo.com"
               type="email"
+              value={data.email}
+              onChange={(e) => setData("email", e.target.value)}
+              error={errors.email}
             />
           </div>
 
@@ -54,12 +90,18 @@ export default function ReparacionModal() {
                 label="Modelo del dispositivo"
                 required
                 placeholder="Marca y modelo exactos"
+                value={data.modelo_dispositivo}
+                onChange={(e) => setData("modelo_dispositivo", e.target.value)}
+                error={errors.modelo_dispositivo}
               />
               <div className="w-full">
                 <label className="mb-2 block text-base font-semibold text-slate-600">
                   Tipo de problema <span className="text-pink-500">*</span>
                 </label>
-                <Select>
+                <Select
+                  value={data.tipo_problema}
+                  onValueChange={(valor) => setData("tipo_problema", valor)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona el problema" />
                   </SelectTrigger>
@@ -74,12 +116,18 @@ export default function ReparacionModal() {
                     <SelectItem value="otros">Otras reparaciones</SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.tipo_problema ? (
+                  <p className="mt-1 text-sm font-semibold text-red-500">{errors.tipo_problema}</p>
+                ) : null}
               </div>
             </div>
             <Textarea
               label="Describe el problema (opcional)"
               placeholder="Describe el problema con el máximo detalle posible para que podamos ayudarte mejor..."
               className="min-h-36"
+              value={data.descripcion}
+              onChange={(e) => setData("descripcion", e.target.value)}
+              error={errors.descripcion}
             />
           </div>
 
@@ -91,7 +139,10 @@ export default function ReparacionModal() {
               <Button
                 type="button"
                 variant="tarjeta"
-                onClick={() => setModalidad("envio")}
+                onClick={() => {
+                  setModalidad("envio");
+                  setData("modalidad", "envio");
+                }}
                 className={modalidad === "envio" ? "border-violet-400 bg-violet-50 shadow-md" : ""}
               >
                 {modalidad === "envio"}
@@ -109,7 +160,10 @@ export default function ReparacionModal() {
               <Button
                 type="button"
                 variant="tarjeta"
-                onClick={() => setModalidad("recogida")}
+                onClick={() => {
+                  setModalidad("recogida");
+                  setData("modalidad", "recogida");
+                }}
                 className={modalidad === "recogida" ? "border-violet-400 bg-violet-50 shadow-md" : ""}
               >
                 {modalidad === "recogida"}
@@ -137,7 +191,9 @@ export default function ReparacionModal() {
           </div>
 
           <div className="flex justify-center pb-2">
-            <Button size="lg">Solicitar Reparación</Button>
+            <Button size="lg" disabled={processing}>
+              {processing ? "Enviando..." : "Solicitar Reparación"}
+            </Button>
           </div>
         </form>
       </DialogContent>

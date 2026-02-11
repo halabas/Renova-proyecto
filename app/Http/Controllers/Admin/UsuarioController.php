@@ -22,7 +22,7 @@ class UsuarioController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'is_admin' => (bool) $user->is_admin,
+                    'rol' => $user->rol,
                     'deleted_at' => $user->deleted_at?->format('d/m/Y H:i'),
                 ];
             });

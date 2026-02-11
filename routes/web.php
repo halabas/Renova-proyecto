@@ -16,6 +16,7 @@ use App\Http\Controllers\DireccionController;
 use App\Http\Controllers\DevolucionController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\AdminPedidosController;
+use App\Http\Controllers\SolicitudReparacionController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/buscar', [BuscarController::class, 'index'])->name('buscar');
@@ -25,6 +26,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('modelos/{modelo}', [ModeloController::class, 'show'])->name('modelos.show');
 Route::get('componentes/{componente}', [ComponenteController::class, 'show'])->name('componentes.show');
 Route::get('reparaciones', [ReparacionController::class, 'index'])->name('reparaciones.index');
+Route::post('reparaciones/solicitudes', [SolicitudReparacionController::class, 'store'])
+    ->name('reparaciones.solicitudes.store');
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::resource('marcas', MarcaController::class)->except(['show', 'create', 'edit']);
@@ -60,6 +63,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         ->name('devoluciones.rechazar');
     Route::post('devoluciones/{devolucion}/reembolsar', [DevolucionController::class, 'reembolsar'])
         ->name('devoluciones.reembolsar');
+});
+
+Route::middleware(['auth', 'gestion_reparaciones'])->prefix('admin')->group(function () {
+    Route::get('solicitudes-reparacion', [SolicitudReparacionController::class, 'adminIndex'])
+        ->name('admin.solicitudes-reparacion.index');
+    Route::patch('solicitudes-reparacion/{solicitudReparacion}/estado', [SolicitudReparacionController::class, 'updateEstado'])
+        ->name('admin.solicitudes-reparacion.update-estado');
 });
 
 Route::get('carrito', [CarritoController::class, 'index'])->name('carrito.index');

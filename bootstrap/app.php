@@ -3,6 +3,7 @@
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\ComprobarAdmin;
+use App\Http\Middleware\ComprobarGestionReparaciones;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => ComprobarAdmin::class,
+            'gestion_reparaciones' => ComprobarGestionReparaciones::class,
         ]);
 
         $middleware->web(append: [

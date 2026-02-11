@@ -35,12 +35,12 @@ export default function Usuarios({ usuarios }) {
                   <td className="px-4 py-3">
                     <span
                       className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                        usuario.is_admin
+                        usuario.rol === 'admin'
                           ? 'bg-violet-50 text-violet-700'
                           : 'bg-slate-100 text-slate-700'
                       }`}
                     >
-                      {usuario.is_admin ? 'Admin' : 'Usuario'}
+                      {usuario.rol}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-slate-600">

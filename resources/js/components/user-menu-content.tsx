@@ -9,9 +9,10 @@ import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import { index as pedidosIndex } from '@/routes/pedidos';
+import { index as reparacionesIndex } from '@/routes/solicitudes-reparacion/user';
 import { type User } from '@/types';
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings, Package } from 'lucide-react';
+import { LogOut, Settings, Package, Wrench } from 'lucide-react';
 
 interface UserMenuContentProps {
     user: User;
@@ -56,6 +57,18 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                     >
                         <Package className="mr-2" />
                         Pedidos
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link
+                        className="block w-full"
+                        href={reparacionesIndex()}
+                        as="button"
+                        prefetch
+                        onClick={cleanup}
+                    >
+                        <Wrench className="mr-2" />
+                        Reparaciones
                     </Link>
                 </DropdownMenuItem>
             </DropdownMenuGroup>
