@@ -37,7 +37,7 @@ export default function ReparacionModal({ direcciones = [] }) {
       <DialogTrigger asChild>
         <Button>Seleccionar reparación</Button>
       </DialogTrigger>
-      <DialogContent className="max-h-screen w-full max-w-6xl overflow-y-auto rounded-2xl border p-8 sm:max-w-6xl sm:p-10">
+      <DialogContent className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border p-7 sm:max-w-4xl sm:p-8 lg:max-w-5xl">
         <DialogHeader className="text-center">
           <DialogTitle className="text-3xl font-semibold text-slate-900 sm:text-4xl">
             Solicita tu <span className="text-violet-600">Reparación</span>
@@ -47,9 +47,9 @@ export default function ReparacionModal({ direcciones = [] }) {
           </DialogDescription>
         </DialogHeader>
 
-        <form className="mt-10 space-y-8" onSubmit={enviar}>
-          <div className="space-y-5">
-            <h3 className="text-2xl font-medium text-slate-900">
+        <form className="mt-8 space-y-7" onSubmit={enviar}>
+          <div className="space-y-4">
+            <h3 className="text-xl font-medium text-slate-900">
               Dirección de recogida y contacto
             </h3>
             {!auth?.user ? (
@@ -96,11 +96,11 @@ export default function ReparacionModal({ direcciones = [] }) {
             )}
           </div>
 
-          <div className="space-y-5">
-            <h3 className="text-2xl font-medium text-slate-900">
+          <div className="space-y-4">
+            <h3 className="text-xl font-medium text-slate-900">
               Información del Dispositivo
             </h3>
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-5 md:grid-cols-2">
               <Input
                 label="Modelo del dispositivo"
                 required
@@ -139,18 +139,18 @@ export default function ReparacionModal({ direcciones = [] }) {
             <Textarea
               label="Describe el problema (opcional)"
               placeholder="Describe el problema con el máximo detalle posible para que podamos ayudarte mejor..."
-              className="min-h-36"
+              className="min-h-32"
               value={data.descripcion}
               onChange={(e) => setData("descripcion", e.target.value)}
               error={errors.descripcion}
             />
           </div>
 
-          <div className="space-y-6">
-            <h3 className="text-2xl font-medium text-slate-900">
+          <div className="space-y-5">
+            <h3 className="text-xl font-medium text-slate-900">
               Modalidad de Reparación
             </h3>
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-5 md:grid-cols-2">
               <Button
                 type="button"
                 variant="tarjeta"
@@ -195,7 +195,7 @@ export default function ReparacionModal({ direcciones = [] }) {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-violet-200 bg-violet-50 px-6 py-7 text-center">
+          <div className="rounded-3xl border border-violet-200 bg-violet-50 px-6 py-6 text-center">
             <p className="text-sm text-slate-500">Precio de la revisión</p>
             <p className="mt-2 text-3xl font-semibold text-slate-900">
               30,00 €

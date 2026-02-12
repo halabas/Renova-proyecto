@@ -1,7 +1,9 @@
 import AppLayout from '@/layouts/renova-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Head, router } from '@inertiajs/react';
+import { useState } from 'react';
 import { Calendar, Wrench } from 'lucide-react';
 
 const breadcrumbs = [
@@ -36,10 +38,55 @@ const estadoPresupuestoClase = (estado) => {
 };
 
 export default function ReparacionesUsuario({ solicitudes }) {
+  const [solicitudAyuda, setSolicitudAyuda] = useState(null);
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Mis reparaciones" />
       <SettingsLayout>
+        <Dialog
+          open={solicitudAyuda !== null}
+          onOpenChange={(abierto) => {
+            if (!abierto) {
+              setSolicitudAyuda(null);
+            }
+          }}
+        >
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>¿Necesitas ayuda con tu reparación?</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-slate-600">
+              Abriremos un ticket de soporte con el contexto de esta solicitud para ayudarte más rápido.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                size="sm"
+                variant="outlineGray"
+                onClick={() => setSolicitudAyuda(null)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  if (!solicitudAyuda) {
+                    return;
+                  }
+                  router.post(
+                    `/ajustes/reparaciones/${solicitudAyuda}/ayuda`,
+                    {},
+                    { preserveScroll: true }
+                  );
+                  setSolicitudAyuda(null);
+                }}
+              >
+                Abrir ticket
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         <div className="space-y-6">
           <div className="rounded-2xl border border-slate-200 bg-white p-5">
             <h3 className="text-lg font-semibold text-slate-900">Mis reparaciones</h3>
@@ -173,6 +220,16 @@ export default function ReparacionesUsuario({ solicitudes }) {
                       </div>
                     </div>
                   ) : null}
+
+                  <div className="mt-4 flex justify-end">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setSolicitudAyuda(solicitud.id)}
+                    >
+                      Ayuda
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

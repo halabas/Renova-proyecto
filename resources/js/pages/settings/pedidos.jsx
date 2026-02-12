@@ -20,6 +20,7 @@ export default function Orders({ pedidos }) {
     const [pedidosAbiertos, setPedidosAbiertos] = useState({});
     const [modalDevolucionAbierto, setModalDevolucionAbierto] = useState(false);
     const [pedidoDevolucion, setPedidoDevolucion] = useState(null);
+    const [pedidoAyuda, setPedidoAyuda] = useState(null);
     const {
         data: formDevolucion,
         setData: setFormDevolucion,
@@ -172,6 +173,51 @@ export default function Orders({ pedidos }) {
                                     Enviar solicitud
                                 </Button>
                             </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog
+                    open={pedidoAyuda !== null}
+                    onOpenChange={(abierto) => {
+                        if (!abierto) {
+                            setPedidoAyuda(null);
+                        }
+                    }}
+                >
+                    <DialogContent className="max-w-lg">
+                        <DialogHeader>
+                            <DialogTitle>¿Necesitas ayuda con tu pedido?</DialogTitle>
+                        </DialogHeader>
+                        <p className="text-sm text-slate-600">
+                            Abriremos un ticket de soporte con la información del pedido para
+                            ayudarte más rápido.
+                        </p>
+                        <div className="flex justify-end gap-2">
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outlineGray"
+                                onClick={() => setPedidoAyuda(null)}
+                            >
+                                Cancelar
+                            </Button>
+                            <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => {
+                                    if (!pedidoAyuda) {
+                                        return;
+                                    }
+                                    router.post(
+                                        `/ajustes/pedidos/${pedidoAyuda}/ayuda`,
+                                        {},
+                                    );
+                                    setPedidoAyuda(null);
+                                }}
+                            >
+                                Abrir ticket
+                            </Button>
                         </div>
                     </DialogContent>
                 </Dialog>
@@ -370,7 +416,15 @@ export default function Orders({ pedidos }) {
                                                 </Button>
                                             ) : null}
                                         </div>
-                                        <div className="flex justify-end">
+                                        <div className="flex justify-end gap-2">
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="secondary"
+                                                onClick={() => setPedidoAyuda(pedido.id)}
+                                            >
+                                                Ayuda
+                                            </Button>
                                             {pedido.productos.length > 3 ? (
                                                 <button
                                                     type="button"

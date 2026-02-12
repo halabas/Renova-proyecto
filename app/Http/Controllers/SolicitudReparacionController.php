@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Direccion;
 use App\Models\SolicitudReparacion;
+use App\Models\TicketMensajeSoporte;
+use App\Models\TicketSoporte;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -500,5 +502,57 @@ class SolicitudReparacionController extends Controller
         ]);
 
         return $pdf->stream('factura-reparacion-'.$solicitudReparacion->id.'.pdf');
+    }
+
+    public function ayuda(Request $request, SolicitudReparacion $solicitudReparacion)
+    {
+        $user = $request->user();
+        if (! $user || (int) $solicitudReparacion->user_id !== (int) $user->id) {
+            return redirect()->route('login');
+        }
+
+        $asunto = 'Solicitud reparacion #'.$solicitudReparacion->id;
+
+        $ticket = TicketSoporte::query()
+            ->where('user_id', $user->id)
+            ->where('categoria', 'Reparacion')
+            ->where('asunto', $asunto)
+            ->where('estado', '!=', 'cerrado')
+            ->latest()
+            ->first();
+
+        if (! $ticket) {
+            $lineas = [];
+            $lineas[] = 'Ayuda sobre la solicitud de reparacion #'.$solicitudReparacion->id;
+            $lineas[] = 'Estado: '.($solicitudReparacion->estado ?? 'nueva');
+            $lineas[] = 'Fecha: '.($solicitudReparacion->created_at?->format('d/m/Y H:i') ?? '-');
+            $lineas[] = 'Dispositivo: '.($solicitudReparacion->modelo_dispositivo ?? '-');
+            $lineas[] = 'Problema: '.($solicitudReparacion->tipo_problema ?? '-');
+            $lineas[] = 'Modalidad: '.($solicitudReparacion->modalidad ?? '-');
+            if ($solicitudReparacion->descripcion) {
+                $lineas[] = 'Descripcion: '.$solicitudReparacion->descripcion;
+            }
+            if ($solicitudReparacion->presupuesto) {
+                $lineas[] = 'Presupuesto: '.number_format((float) $solicitudReparacion->presupuesto->importe_total, 2, '.', '').' EUR';
+                $lineas[] = 'Estado presupuesto: '.$solicitudReparacion->presupuesto->estado;
+            }
+
+            $ticket = TicketSoporte::create([
+                'user_id' => $user->id,
+                'asunto' => $asunto,
+                'categoria' => 'Reparacion',
+                'prioridad' => 'media',
+                'estado' => 'abierto',
+            ]);
+
+            TicketMensajeSoporte::create([
+                'ticket_soporte_id' => $ticket->id,
+                'user_id' => $user->id,
+                'mensaje' => implode("\n", $lineas),
+            ]);
+        }
+
+        return redirect('/ajustes/soporte?ticket='.$ticket->id)
+            ->with('success', 'Ticket de ayuda listo.');
     }
 }

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Devolucion;
 use App\Models\Pedido;
 use App\Models\PedidoProducto;
+use App\Models\TicketMensajeSoporte;
+use App\Models\TicketSoporte;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Stripe\Checkout\Session as StripeSession;
@@ -267,5 +269,62 @@ class PedidosController extends Controller
 
         return redirect()->route('pedidos.index')
             ->with('success', 'Pedido marcado como recibido.');
+    }
+
+    public function ayuda(Request $request, Pedido $pedido)
+    {
+        $user = $request->user();
+        if (! $user || $pedido->user_id !== $user->id) {
+            return redirect()->route('login');
+        }
+
+        $asunto = 'Pedido #'.$pedido->id;
+
+        $ticket = TicketSoporte::query()
+            ->where('user_id', $user->id)
+            ->where('categoria', 'Pedido')
+            ->where('asunto', $asunto)
+            ->where('estado', '!=', 'cerrado')
+            ->latest()
+            ->first();
+
+        if (! $ticket) {
+            $pedido->loadMissing('productos');
+
+            $lineas = [];
+            $lineas[] = 'Ayuda sobre el pedido #'.$pedido->id;
+            $lineas[] = 'Estado pago: '.($pedido->estado ?? 'sin estado');
+            $lineas[] = 'Estado envio: '.($pedido->estado_envio ?? 'pendiente');
+            $lineas[] = 'Fecha: '.($pedido->created_at?->format('d/m/Y H:i') ?? '-');
+            $lineas[] = 'Total: '.number_format((float) $pedido->total, 2, '.', '').' EUR';
+            $lineas[] = '';
+            $lineas[] = 'Direccion de envio:';
+            $lineas[] = trim(($pedido->nombre ?? '').' '.($pedido->apellidos ?? ''));
+            $lineas[] = (string) ($pedido->telefono ?? '-');
+            $lineas[] = trim(($pedido->direccion ?? '').', '.($pedido->ciudad ?? '').', '.($pedido->provincia ?? '').' '.($pedido->codigo_postal ?? ''));
+            $lineas[] = '';
+            $lineas[] = 'Productos:';
+
+            foreach ($pedido->productos as $producto) {
+                $lineas[] = '- '.$producto->nombre.' x'.$producto->cantidad.' ('.number_format((float) $producto->precio_unitario, 2, '.', '').' EUR)';
+            }
+
+            $ticket = TicketSoporte::create([
+                'user_id' => $user->id,
+                'asunto' => $asunto,
+                'categoria' => 'Pedido',
+                'prioridad' => 'media',
+                'estado' => 'abierto',
+            ]);
+
+            TicketMensajeSoporte::create([
+                'ticket_soporte_id' => $ticket->id,
+                'user_id' => $user->id,
+                'mensaje' => implode("\n", $lineas),
+            ]);
+        }
+
+        return redirect('/ajustes/soporte?ticket='.$ticket->id)
+            ->with('success', 'Ticket de ayuda listo.');
     }
 }

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import InputError from '@/components/input-error';
 import { Head, router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const estadoClase = (estado) => {
   if (estado === 'abierto') return 'bg-slate-100 text-slate-700';
@@ -15,7 +15,12 @@ const estadoClase = (estado) => {
   return 'bg-slate-100 text-slate-700';
 };
 
-export default function SoporteUsuario({ tickets, categorias }) {
+export default function SoporteUsuario({ tickets, categorias, ticketAbiertoInicialId = null }) {
+  const listaTickets = Array.isArray(tickets) ? tickets : (tickets?.data || []);
+  const paginaActual = tickets?.current_page || 1;
+  const totalPaginas = tickets?.last_page || 1;
+  const paginaAnterior = tickets?.prev_page_url;
+  const paginaSiguiente = tickets?.next_page_url;
   const [respuestas, setRespuestas] = useState({});
   const [ticketAbiertoId, setTicketAbiertoId] = useState(null);
   const [modalNuevoTicketAbierto, setModalNuevoTicketAbierto] = useState(false);
@@ -24,6 +29,17 @@ export default function SoporteUsuario({ tickets, categorias }) {
     categoria: categorias?.[0] || 'Otro',
     mensaje: '',
   });
+
+  useEffect(() => {
+    if (!ticketAbiertoInicialId) {
+      return;
+    }
+
+    const existe = listaTickets.some((ticket) => ticket.id === ticketAbiertoInicialId);
+    if (existe) {
+      setTicketAbiertoId(ticketAbiertoInicialId);
+    }
+  }, [ticketAbiertoInicialId, listaTickets]);
 
   return (
     <AppLayout>
@@ -103,7 +119,7 @@ export default function SoporteUsuario({ tickets, categorias }) {
                 <DialogTitle>
                   {ticketAbiertoId
                     ? `Ticket #${ticketAbiertoId} · ${
-                        tickets.find((ticket) => ticket.id === ticketAbiertoId)?.asunto || ''
+                        listaTickets.find((ticket) => ticket.id === ticketAbiertoId)?.asunto || ''
                       }`
                     : 'Ticket'}
                 </DialogTitle>
@@ -111,7 +127,7 @@ export default function SoporteUsuario({ tickets, categorias }) {
 
               {ticketAbiertoId ? (
                 (() => {
-                  const ticket = tickets.find((item) => item.id === ticketAbiertoId);
+                  const ticket = listaTickets.find((item) => item.id === ticketAbiertoId);
                   if (!ticket) return null;
 
                   return (
@@ -219,13 +235,13 @@ export default function SoporteUsuario({ tickets, categorias }) {
             </DialogContent>
           </Dialog>
 
-          {tickets.length === 0 ? (
+          {listaTickets.length === 0 ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-slate-500">
               Aun no tienes tickets de soporte.
             </div>
           ) : (
             <div className="space-y-4">
-              {tickets.map((ticket) => (
+              {listaTickets.map((ticket) => (
                 <div key={ticket.id} className="rounded-2xl border border-slate-200 bg-white p-5">
                   <div className="flex w-full flex-wrap items-center justify-between gap-2 text-left">
                     <div>
@@ -257,6 +273,30 @@ export default function SoporteUsuario({ tickets, categorias }) {
               ))}
             </div>
           )}
+
+          {!Array.isArray(tickets) && totalPaginas > 1 ? (
+            <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4">
+              <Button
+                size="sm"
+                variant="outlineGray"
+                disabled={!paginaAnterior}
+                onClick={() => paginaAnterior && router.get(paginaAnterior, {}, { preserveScroll: true })}
+              >
+                Anterior
+              </Button>
+              <p className="text-sm text-slate-600">
+                Pagina {paginaActual} de {totalPaginas}
+              </p>
+              <Button
+                size="sm"
+                variant="outlineGray"
+                disabled={!paginaSiguiente}
+                onClick={() => paginaSiguiente && router.get(paginaSiguiente, {}, { preserveScroll: true })}
+              >
+                Siguiente
+              </Button>
+            </div>
+          ) : null}
         </div>
       </SettingsLayout>
     </AppLayout>

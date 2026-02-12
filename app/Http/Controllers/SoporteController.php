@@ -15,17 +15,31 @@ class SoporteController extends Controller
     public function userIndex(Request $request)
     {
         $user = $request->user();
+        $ticketAbiertoInicialId = null;
+        $ticketQuery = (int) $request->query('ticket', 0);
+        if ($ticketQuery > 0) {
+            $existeTicket = TicketSoporte::query()
+                ->where('id', $ticketQuery)
+                ->where('user_id', $user->id)
+                ->exists();
+            if ($existeTicket) {
+                $ticketAbiertoInicialId = $ticketQuery;
+            }
+        }
 
         $tickets = TicketSoporte::query()
             ->with(['tecnico:id,name', 'mensajes.usuario:id,name,rol'])
             ->where('user_id', $user->id)
-            ->latest()
-            ->get()
-            ->map(fn (TicketSoporte $ticket) => $this->mapTicket($ticket));
+            ->orderByRaw("CASE estado WHEN 'abierto' THEN 1 WHEN 'resuelto' THEN 2 WHEN 'cerrado' THEN 3 ELSE 4 END")
+            ->orderByDesc('created_at')
+            ->paginate(6)
+            ->through(fn (TicketSoporte $ticket) => $this->mapTicket($ticket))
+            ->withQueryString();
 
         return Inertia::render('settings/soporte', [
             'tickets' => $tickets,
             'categorias' => ['Pedido', 'Reparacion', 'Cuenta', 'Pago', 'Otro'],
+            'ticketAbiertoInicialId' => $ticketAbiertoInicialId,
         ]);
     }
 
@@ -178,7 +192,7 @@ class SoporteController extends Controller
         }
 
         if ($ticketSoporte->tecnico_id && (int) $ticketSoporte->tecnico_id !== (int) $user->id) {
-            return back()->with('error', 'El ticket ya esta asignado a otro tecnico.');
+            return back()->with('error', 'El ticket ya esta asignado a otro responsable.');
         }
 
         $ticketSoporte->tecnico_id = $user->id;
@@ -200,13 +214,13 @@ class SoporteController extends Controller
 
         $tecnico = User::find($datos['tecnico_id']);
         if (! $tecnico || ! in_array($tecnico->rol, ['admin', 'tecnico'], true)) {
-            return back()->with('error', 'Solo puedes asignar tickets a admins o tecnicos.');
+            return back()->with('error', 'Solo puedes asignar tickets a responsables válidos.');
         }
 
         $ticketSoporte->tecnico_id = $tecnico->id;
         $ticketSoporte->save();
 
-        return back()->with('success', 'Tecnico actualizado.');
+        return back()->with('success', 'Responsable actualizado.');
     }
 
     public function adminEstado(Request $request, TicketSoporte $ticketSoporte)

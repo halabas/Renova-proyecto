@@ -28,6 +28,7 @@ Route::middleware('auth')->group(function () {
     Route::post('ajustes/pedidos/{pedido}/devolucion', [PedidosController::class, 'solicitarDevolucion'])->name('pedidos.devolucion');
 Route::post('ajustes/pedidos/{pedido}/cancelar', [PedidosController::class, 'cancelar'])->name('pedidos.cancelar');
     Route::post('ajustes/pedidos/{pedido}/recibido', [PedidosController::class, 'marcarRecibido'])->name('pedidos.recibido');
+    Route::post('ajustes/pedidos/{pedido}/ayuda', [PedidosController::class, 'ayuda'])->name('pedidos.ayuda');
     Route::get('ajustes/reparaciones', [SolicitudReparacionController::class, 'userIndex'])->name('solicitudes-reparacion.user.index');
     Route::post('ajustes/reparaciones/{solicitudReparacion}/presupuesto/aceptar-pagar', [SolicitudReparacionController::class, 'aceptarYPagarPresupuesto'])
         ->name('solicitudes-reparacion.user.presupuesto.aceptar-pagar');
@@ -37,6 +38,8 @@ Route::post('ajustes/pedidos/{pedido}/cancelar', [PedidosController::class, 'can
         ->name('solicitudes-reparacion.user.presupuesto.success');
     Route::post('ajustes/reparaciones/{solicitudReparacion}/recibido', [SolicitudReparacionController::class, 'marcarRecibido'])
         ->name('solicitudes-reparacion.user.recibido');
+    Route::post('ajustes/reparaciones/{solicitudReparacion}/ayuda', [SolicitudReparacionController::class, 'ayuda'])
+        ->name('solicitudes-reparacion.user.ayuda');
     Route::get('ajustes/reparaciones/{solicitudReparacion}/factura', [SolicitudReparacionController::class, 'factura'])
         ->name('solicitudes-reparacion.user.factura');
     Route::get('ajustes/soporte', [SoporteController::class, 'userIndex'])->name('soporte.index');
