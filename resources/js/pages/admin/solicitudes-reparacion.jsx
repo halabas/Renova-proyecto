@@ -1,29 +1,49 @@
 import AppLayout from '@/layouts/renova-layout';
 import { Button } from '@/components/ui/button';
-import { Head, router } from '@inertiajs/react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 
-const estados = [
-  'nueva',
-  'en_revision',
-  'presupuesto_enviado',
-  'aceptada',
-  'en_reparacion',
-  'finalizada',
-  'cancelada',
-];
+export default function SolicitudesReparacionAdmin({ solicitudes, tecnicos = [], filtro = 'mias' }) {
+  const { auth } = usePage().props;
+  const usuarioActual = auth?.user;
+  const esAdmin = usuarioActual?.rol === 'admin';
+  const esTecnico = usuarioActual?.rol === 'tecnico';
+  const [solicitudModal, setSolicitudModal] = useState(null);
+  const [abierto, setAbierto] = useState(false);
+  const { data, setData, post, processing, reset, errors, clearErrors } = useForm({
+    importe_total: '',
+    descripcion: '',
+  });
 
-const estadoClase = (estado) => {
-  if (estado === 'nueva') return 'bg-slate-100 text-slate-700';
-  if (estado === 'en_revision') return 'bg-amber-50 text-amber-700';
-  if (estado === 'presupuesto_enviado') return 'bg-sky-50 text-sky-700';
-  if (estado === 'aceptada') return 'bg-emerald-50 text-emerald-700';
-  if (estado === 'en_reparacion') return 'bg-violet-50 text-violet-700';
-  if (estado === 'finalizada') return 'bg-emerald-50 text-emerald-700';
-  if (estado === 'cancelada') return 'bg-red-50 text-red-700';
-  return 'bg-slate-100 text-slate-700';
-};
+  const aplicarFiltro = (nuevoFiltro) => {
+    router.get('/admin/solicitudes-reparacion', { filtro: nuevoFiltro }, { preserveScroll: true });
+  };
 
-export default function SolicitudesReparacionAdmin({ solicitudes, filtroEstado }) {
+  const abrirModalPresupuesto = (solicitud) => {
+    setSolicitudModal(solicitud);
+    reset();
+    clearErrors();
+    setAbierto(true);
+  };
+
+  const enviarPresupuesto = (e) => {
+    e.preventDefault();
+    if (!solicitudModal) {
+      return;
+    }
+    post(`/admin/solicitudes-reparacion/${solicitudModal.id}/presupuesto`, {
+      preserveScroll: true,
+      onSuccess: () => {
+        setAbierto(false);
+        setSolicitudModal(null);
+        reset();
+      },
+    });
+  };
+
   return (
     <AppLayout>
       <Head title="Solicitudes reparación" />
@@ -33,32 +53,28 @@ export default function SolicitudesReparacionAdmin({ solicitudes, filtroEstado }
           <p className="text-sm text-slate-500">Gestión de entradas del taller.</p>
         </div>
 
-        <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5">
-          <form
-            className="flex flex-wrap items-end gap-3"
-            onSubmit={(e) => {
-              e.preventDefault();
-              const form = new FormData(e.currentTarget);
-              router.get('/admin/solicitudes-reparacion', {
-                estado: form.get('estado'),
-              }, { preserveState: true, preserveScroll: true });
-            }}
+        <div className="mb-6 flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant={filtro === 'mias' ? 'default' : 'outlineGray'}
+            onClick={() => aplicarFiltro('mias')}
           >
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold uppercase text-slate-400">Estado</label>
-              <select
-                name="estado"
-                defaultValue={filtroEstado || 'todos'}
-                className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm"
-              >
-                <option value="todos">Todos</option>
-                {estados.map((estado) => (
-                  <option key={estado} value={estado}>{estado}</option>
-                ))}
-              </select>
-            </div>
-            <Button type="submit" size="sm">Filtrar</Button>
-          </form>
+            Mis reparaciones
+          </Button>
+          <Button
+            size="sm"
+            variant={filtro === 'pendientes' ? 'default' : 'outlineGray'}
+            onClick={() => aplicarFiltro('pendientes')}
+          >
+            Pendientes
+          </Button>
+          <Button
+            size="sm"
+            variant={filtro === 'todas' ? 'default' : 'outlineGray'}
+            onClick={() => aplicarFiltro('todas')}
+          >
+            Todas
+          </Button>
         </div>
 
         {solicitudes.length === 0 ? (
@@ -84,8 +100,8 @@ export default function SolicitudesReparacionAdmin({ solicitudes, filtroEstado }
                       </p>
                     ) : null}
                   </div>
-                  <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${estadoClase(solicitud.estado)}`}>
-                    {solicitud.estado}
+                  <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                    {String(solicitud.estado).replaceAll('_', ' ')}
                   </span>
                 </div>
 
@@ -93,30 +109,181 @@ export default function SolicitudesReparacionAdmin({ solicitudes, filtroEstado }
                   <p><span className="font-medium">Modelo:</span> {solicitud.modelo_dispositivo}</p>
                   <p><span className="font-medium">Problema:</span> {solicitud.tipo_problema}</p>
                   <p><span className="font-medium">Modalidad:</span> {solicitud.modalidad}</p>
+                  <p>
+                    <span className="font-medium">Técnico a cargo:</span>{' '}
+                    {solicitud.tecnico ? solicitud.tecnico.nombre : 'Sin asignar'}
+                  </p>
                   {solicitud.descripcion ? (
                     <p><span className="font-medium">Descripción:</span> {solicitud.descripcion}</p>
                   ) : null}
                 </div>
 
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {estados.map((estado) => (
+                {esAdmin ? (
+                  <div className="mt-4 flex items-center gap-2">
+                    <span className="text-sm font-medium text-slate-700">Asignar técnico:</span>
+                    <select
+                      className="h-9 rounded-xl border border-slate-200 bg-white px-2 text-sm text-slate-700"
+                      value={solicitud.tecnico_id || ''}
+                      onChange={(e) => {
+                        const valor = e.target.value;
+                        router.patch(
+                          `/admin/solicitudes-reparacion/${solicitud.id}/tecnico`,
+                          { tecnico_id: valor === '' ? null : Number(valor) },
+                          { preserveScroll: true }
+                        );
+                      }}
+                    >
+                      {!solicitud.tecnico_id ? (
+                        <option value="" disabled>
+                          Selecciona técnico
+                        </option>
+                      ) : null}
+                      {tecnicos.map((tecnico) => (
+                        <option key={tecnico.id} value={tecnico.id}>
+                          {tecnico.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : null}
+
+                {esTecnico && !solicitud.tecnico_id ? (
+                  <div className="mt-4">
                     <Button
-                      key={estado}
+                      variant="default"
                       size="sm"
-                      variant={solicitud.estado === estado ? 'secondary' : 'outlineGray'}
                       onClick={() =>
-                        router.patch(`/admin/solicitudes-reparacion/${solicitud.id}/estado`, { estado })
+                        router.post(`/admin/solicitudes-reparacion/${solicitud.id}/aceptar`, {}, { preserveScroll: true })
                       }
                     >
-                      {estado}
+                      Aceptar reparación
                     </Button>
-                  ))}
-                </div>
+                  </div>
+                ) : null}
+
+                {(solicitud.estado === 'asignado' && !solicitud.tiene_presupuesto) &&
+                (esAdmin || (esTecnico && solicitud.tecnico_id === usuarioActual?.id)) ? (
+                  <div className="mt-4">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => abrirModalPresupuesto(solicitud)}
+                    >
+                      Crear presupuesto
+                    </Button>
+                  </div>
+                ) : null}
+
+                {solicitud.estado === 'aceptada' && (esAdmin || (esTecnico && solicitud.tecnico_id === usuarioActual?.id)) ? (
+                  <div className="mt-4">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() =>
+                        router.post(
+                          `/admin/solicitudes-reparacion/${solicitud.id}/marcar-reparado`,
+                          {},
+                          { preserveScroll: true }
+                        )
+                      }
+                    >
+                      Marcar como reparado
+                    </Button>
+                  </div>
+                ) : null}
+
+                {solicitud.estado === 'rechazada' && (esAdmin || (esTecnico && solicitud.tecnico_id === usuarioActual?.id)) ? (
+                  <div className="mt-4">
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="outlineGray"
+                        size="sm"
+                        onClick={() =>
+                          router.post(
+                            `/admin/solicitudes-reparacion/${solicitud.id}/devolver`,
+                            {},
+                            { preserveScroll: true }
+                          )
+                        }
+                      >
+                        Devolver dispositivo
+                      </Button>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() =>
+                          router.post(
+                            `/admin/solicitudes-reparacion/${solicitud.id}/enviar`,
+                            {},
+                            { preserveScroll: true }
+                          )
+                        }
+                      >
+                        Marcar como enviado
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
+
+                {(solicitud.estado === 'reparado' || solicitud.estado === 'devuelto') &&
+                (esAdmin || (esTecnico && solicitud.tecnico_id === usuarioActual?.id)) ? (
+                  <div className="mt-4">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() =>
+                        router.post(
+                          `/admin/solicitudes-reparacion/${solicitud.id}/enviar`,
+                          {},
+                          { preserveScroll: true }
+                        )
+                      }
+                    >
+                      Marcar como enviado
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             ))}
           </div>
         )}
       </div>
+
+      <Dialog open={abierto} onOpenChange={setAbierto}>
+        <DialogTrigger asChild>
+          <span />
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Crear presupuesto</DialogTitle>
+          </DialogHeader>
+          <form className="space-y-4" onSubmit={enviarPresupuesto}>
+            <Input
+              label="Importe total"
+              type="number"
+              min="0"
+              step="0.01"
+              value={data.importe_total}
+              onChange={(e) => setData('importe_total', e.target.value)}
+              error={errors.importe_total}
+              required
+            />
+            <Textarea
+              label="Descripción"
+              value={data.descripcion}
+              onChange={(e) => setData('descripcion', e.target.value)}
+              error={errors.descripcion}
+              required
+              className="min-h-28"
+            />
+            <div className="flex justify-end">
+              <Button type="submit" disabled={processing}>
+                {processing ? 'Guardando...' : 'Guardar presupuesto'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }

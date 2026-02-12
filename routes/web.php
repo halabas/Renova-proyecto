@@ -16,6 +16,7 @@ use App\Http\Controllers\DireccionController;
 use App\Http\Controllers\DevolucionController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\AdminPedidosController;
+use App\Http\Controllers\PresupuestoController;
 use App\Http\Controllers\SolicitudReparacionController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -26,8 +27,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::get('modelos/{modelo}', [ModeloController::class, 'show'])->name('modelos.show');
 Route::get('componentes/{componente}', [ComponenteController::class, 'show'])->name('componentes.show');
 Route::get('reparaciones', [ReparacionController::class, 'index'])->name('reparaciones.index');
-Route::post('reparaciones/solicitudes', [SolicitudReparacionController::class, 'store'])
-    ->name('reparaciones.solicitudes.store');
+Route::middleware('auth')->group(function () {
+    Route::post('reparaciones/solicitudes', [SolicitudReparacionController::class, 'store'])
+        ->name('reparaciones.solicitudes.store');
+    Route::get('reparaciones/solicitudes/pago-revision/success', [SolicitudReparacionController::class, 'pagoRevisionSuccess'])
+        ->name('reparaciones.solicitudes.pago-revision.success');
+});
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::resource('marcas', MarcaController::class)->except(['show', 'create', 'edit']);
@@ -68,8 +73,18 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 Route::middleware(['auth', 'gestion_reparaciones'])->prefix('admin')->group(function () {
     Route::get('solicitudes-reparacion', [SolicitudReparacionController::class, 'adminIndex'])
         ->name('admin.solicitudes-reparacion.index');
-    Route::patch('solicitudes-reparacion/{solicitudReparacion}/estado', [SolicitudReparacionController::class, 'updateEstado'])
-        ->name('admin.solicitudes-reparacion.update-estado');
+    Route::patch('solicitudes-reparacion/{solicitudReparacion}/tecnico', [SolicitudReparacionController::class, 'updateTecnico'])
+        ->name('admin.solicitudes-reparacion.update-tecnico');
+    Route::post('solicitudes-reparacion/{solicitudReparacion}/aceptar', [SolicitudReparacionController::class, 'aceptarReparacion'])
+        ->name('admin.solicitudes-reparacion.aceptar');
+    Route::post('solicitudes-reparacion/{solicitudReparacion}/marcar-reparado', [SolicitudReparacionController::class, 'marcarReparado'])
+        ->name('admin.solicitudes-reparacion.marcar-reparado');
+    Route::post('solicitudes-reparacion/{solicitudReparacion}/devolver', [SolicitudReparacionController::class, 'devolverDispositivo'])
+        ->name('admin.solicitudes-reparacion.devolver');
+    Route::post('solicitudes-reparacion/{solicitudReparacion}/enviar', [SolicitudReparacionController::class, 'marcarEnviado'])
+        ->name('admin.solicitudes-reparacion.enviar');
+    Route::post('solicitudes-reparacion/{solicitudReparacion}/presupuesto', [PresupuestoController::class, 'store'])
+        ->name('admin.solicitudes-reparacion.presupuesto.store');
 });
 
 Route::get('carrito', [CarritoController::class, 'index'])->name('carrito.index');

@@ -10,6 +10,7 @@ class SolicitudReparacion extends Model
 
     protected $fillable = [
         'user_id',
+        'tecnico_id',
         'nombre_completo',
         'telefono',
         'email',
@@ -23,5 +24,15 @@ class SolicitudReparacion extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function tecnico()
+    {
+        return $this->belongsTo(User::class, 'tecnico_id');
+    }
+
+    public function presupuesto()
+    {
+        return $this->hasOne(Presupuesto::class, 'solicitud_reparacion_id');
     }
 }

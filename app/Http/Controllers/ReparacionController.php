@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Reparacion;
+use App\Models\Direccion;
 use Inertia\Inertia;
 use Illuminate\Validation\ValidationException;
 
@@ -11,7 +12,34 @@ class ReparacionController extends Controller
 {
     public function index()
     {
-        return Inertia::render('reparaciones/index');
+        $user = request()->user();
+        $direcciones = [];
+
+        if ($user) {
+            $direcciones = Direccion::where('user_id', $user->id)
+                ->orderByDesc('predeterminada')
+                ->orderBy('id')
+                ->get()
+                ->map(function ($direccion) {
+                    return [
+                        'id' => $direccion->id,
+                        'etiqueta' => $direccion->etiqueta,
+                        'nombre' => $direccion->nombre,
+                        'apellidos' => $direccion->apellidos,
+                        'telefono' => $direccion->telefono,
+                        'direccion' => $direccion->direccion,
+                        'ciudad' => $direccion->ciudad,
+                        'provincia' => $direccion->provincia,
+                        'codigo_postal' => $direccion->codigo_postal,
+                        'predeterminada' => $direccion->predeterminada,
+                    ];
+                })
+                ->values();
+        }
+
+        return Inertia::render('reparaciones/index', [
+            'direcciones' => $direcciones,
+        ]);
     }
 
     public function admin()

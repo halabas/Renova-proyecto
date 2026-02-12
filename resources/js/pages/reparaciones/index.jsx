@@ -40,7 +40,7 @@ const preguntas = [
   },
 ];
 
-export default function Reparaciones() {
+export default function Reparaciones({ direcciones = [] }) {
   return (
     <AppLayout>
       <div className="w-full bg-slate-50">
@@ -62,7 +62,7 @@ export default function Reparaciones() {
             />
           }
         >
-          <ReparacionModal />
+          <ReparacionModal direcciones={direcciones} />
           <a href="#servicios">
             <Button variant="outlineGray">Consultar servicios</Button>
           </a>

@@ -5,16 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {Select,SelectContent,SelectItem,SelectTrigger,SelectValue} from "@/components/ui/select";
 import { Home, Send } from "lucide-react";
-import { useForm } from "@inertiajs/react";
+import { useForm, usePage } from "@inertiajs/react";
 
 
-export default function ReparacionModal() {
+export default function ReparacionModal({ direcciones = [] }) {
+  const { auth } = usePage().props;
+  const direccionPredeterminada = direcciones.find((d) => d.predeterminada) || direcciones[0];
   const [abierto, setAbierto] = useState(false);
   const [modalidad, setModalidad] = useState("envio");
   const { data, setData, post, processing, errors, reset } = useForm({
-    nombre_completo: "",
-    telefono: "",
-    email: "",
+    direccion_id: direccionPredeterminada?.id || "",
     modelo_dispositivo: "",
     tipo_problema: "",
     descripcion: "",
@@ -48,37 +48,52 @@ export default function ReparacionModal() {
         </DialogHeader>
 
         <form className="mt-10 space-y-8" onSubmit={enviar}>
-          <div className="space-y-6">
+          <div className="space-y-5">
             <h3 className="text-2xl font-medium text-slate-900">
-              Información Personal
+              Dirección de recogida y contacto
             </h3>
-            <div className="grid gap-6 md:grid-cols-2">
-              <Input
-                label="Nombre completo"
-                required
-                placeholder="Nombre y apellidos"
-                value={data.nombre_completo}
-                onChange={(e) => setData("nombre_completo", e.target.value)}
-                error={errors.nombre_completo}
-              />
-              <Input
-                label="Teléfono"
-                required
-                placeholder="Número con prefijo"
-                value={data.telefono}
-                onChange={(e) => setData("telefono", e.target.value)}
-                error={errors.telefono}
-              />
-            </div>
-            <Input
-              label="Email"
-              required
-              placeholder="tu@correo.com"
-              type="email"
-              value={data.email}
-              onChange={(e) => setData("email", e.target.value)}
-              error={errors.email}
-            />
+            {!auth?.user ? (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                Debes iniciar sesión para solicitar una reparación.
+                <a href="/login" className="ml-2 font-semibold text-violet-600 underline">
+                  Iniciar sesión
+                </a>
+              </div>
+            ) : direcciones.length === 0 ? (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                Necesitas al menos una dirección guardada.
+                <a href="/ajustes/perfil" className="ml-2 font-semibold text-violet-600 underline">
+                  Añadir dirección
+                </a>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <label className="mb-2 block text-base font-semibold text-slate-600">
+                  Selecciona una dirección <span className="text-pink-500">*</span>
+                </label>
+                <Select
+                  value={String(data.direccion_id)}
+                  onValueChange={(valor) => setData("direccion_id", Number(valor))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona una dirección" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {direcciones.map((direccion) => (
+                      <SelectItem key={direccion.id} value={String(direccion.id)}>
+                        {direccion.etiqueta} · {direccion.nombre} {direccion.apellidos}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.direccion_id ? (
+                  <p className="mt-1 text-sm font-semibold text-red-500">{errors.direccion_id}</p>
+                ) : null}
+                <p className="text-xs text-slate-500">
+                  Puedes editar tus direcciones en tu perfil.
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="space-y-5">
@@ -181,18 +196,21 @@ export default function ReparacionModal() {
           </div>
 
           <div className="rounded-3xl border border-violet-200 bg-violet-50 px-6 py-7 text-center">
-            <p className="text-sm text-slate-500">Precio de la reparación</p>
+            <p className="text-sm text-slate-500">Precio de la revisión</p>
             <p className="mt-2 text-3xl font-semibold text-slate-900">
-              A consultar
+              30,00 €
             </p>
             <p className="mt-2 text-sm text-slate-500">
-              Te enviaremos un presupuesto personalizado sin compromiso
+              La revisión y diagnóstico se descuenta automáticamente del presupuesto final. Si aceptas nuestro presupuesto, la revisión te sale gratis.
             </p>
           </div>
 
           <div className="flex justify-center pb-2">
-            <Button size="lg" disabled={processing}>
-              {processing ? "Enviando..." : "Solicitar Reparación"}
+            <Button
+              size="lg"
+              disabled={processing || !auth?.user || direcciones.length === 0 || !data.direccion_id}
+            >
+              {processing ? "Redirigiendo al pago..." : "Pagar revisión y solicitar reparación"}
             </Button>
           </div>
         </form>
