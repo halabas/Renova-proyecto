@@ -30,6 +30,30 @@ const mainNavItems: NavItem[] = [
 
 const activeItemStyles = 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';
 
+const adminSecciones = [
+  {
+    titulo: 'Catalogo',
+    enlaces: [
+      { href: '/admin/marcas', label: 'Marcas' },
+      { href: '/admin/modelos', label: 'Modelos' },
+      { href: '/admin/moviles', label: 'Moviles' },
+      { href: '/admin/componentes', label: 'Componentes' },
+      { href: '/admin/categorias', label: 'Categorias' },
+    ],
+  },
+  {
+    titulo: 'Gestion',
+    enlaces: [
+      { href: '/admin/pedidos', label: 'Pedidos' },
+      { href: '/admin/devoluciones', label: 'Devoluciones' },
+      { href: '/admin/reparaciones', label: 'Reparaciones' },
+      { href: '/admin/solicitudes-reparacion', label: 'Solicitudes' },
+      { href: '/admin/usuarios', label: 'Usuarios' },
+      { href: '/admin/soporte', label: 'Soporte' },
+    ],
+  },
+];
+
 export function AppHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItem[] }) {
   const page = usePage<SharedData>();
   const { auth, carritoResumen } = page.props;
@@ -135,41 +159,29 @@ export function AppHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItem[]
                     <ShieldCheck className="size-5 opacity-80 group-hover:opacity-100" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end">
-                  <div className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <DropdownMenuContent className="w-[420px] max-h-[70vh] overflow-y-auto p-3" align="end">
+                  <div className="px-1 py-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
                     Admin
                   </div>
-                  <div className="flex flex-col">
-                    <Link href="/admin/marcas" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                      Marcas
-                    </Link>
-                    <Link href="/admin/modelos" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                      Modelos
-                    </Link>
-                    <Link href="/admin/moviles" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                      Móviles
-                    </Link>
-                    <Link href="/admin/componentes" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                      Componentes
-                    </Link>
-                    <Link href="/admin/categorias" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                      Categorías
-                    </Link>
-                    <Link href="/admin/reparaciones" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                      Reparaciones
-                    </Link>
-                    <Link href="/admin/devoluciones" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                      Devoluciones
-                    </Link>
-                    <Link href="/admin/pedidos" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                      Pedidos
-                    </Link>
-                    <Link href="/admin/solicitudes-reparacion" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                      Solicitudes reparación
-                    </Link>
-                    <Link href="/admin/usuarios" className="px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                      Usuarios
-                    </Link>
+                  <div className="mt-2 grid gap-3 md:grid-cols-2">
+                    {adminSecciones.map((seccion) => (
+                      <div key={seccion.titulo} className="rounded-xl border border-slate-200 bg-slate-50/50 p-2">
+                        <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                          {seccion.titulo}
+                        </p>
+                        <div className="flex flex-col">
+                          {seccion.enlaces.map((enlace) => (
+                            <Link
+                              key={enlace.href}
+                              href={enlace.href}
+                              className="rounded-lg px-2 py-2 text-sm text-slate-700 hover:bg-white"
+                            >
+                              {enlace.label}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </DropdownMenuContent>
               </DropdownMenu>

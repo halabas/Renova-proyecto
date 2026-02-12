@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\AdminPedidosController;
 use App\Http\Controllers\PresupuestoController;
 use App\Http\Controllers\SolicitudReparacionController;
+use App\Http\Controllers\SoporteController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/buscar', [BuscarController::class, 'index'])->name('buscar');
@@ -85,6 +86,16 @@ Route::middleware(['auth', 'gestion_reparaciones'])->prefix('admin')->group(func
         ->name('admin.solicitudes-reparacion.enviar');
     Route::post('solicitudes-reparacion/{solicitudReparacion}/presupuesto', [PresupuestoController::class, 'store'])
         ->name('admin.solicitudes-reparacion.presupuesto.store');
+    Route::get('soporte', [SoporteController::class, 'adminIndex'])
+        ->name('admin.soporte.index');
+    Route::post('soporte/{ticketSoporte}/reclamar', [SoporteController::class, 'adminReclamar'])
+        ->name('admin.soporte.reclamar');
+    Route::patch('soporte/{ticketSoporte}/asignar', [SoporteController::class, 'adminAsignar'])
+        ->name('admin.soporte.asignar');
+    Route::patch('soporte/{ticketSoporte}/estado', [SoporteController::class, 'adminEstado'])
+        ->name('admin.soporte.estado');
+    Route::post('soporte/{ticketSoporte}/responder', [SoporteController::class, 'adminResponder'])
+        ->name('admin.soporte.responder');
 });
 
 Route::get('carrito', [CarritoController::class, 'index'])->name('carrito.index');

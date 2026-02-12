@@ -5,6 +5,7 @@ use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\PedidosController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
 use App\Http\Controllers\SolicitudReparacionController;
+use App\Http\Controllers\SoporteController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -38,6 +39,11 @@ Route::post('ajustes/pedidos/{pedido}/cancelar', [PedidosController::class, 'can
         ->name('solicitudes-reparacion.user.recibido');
     Route::get('ajustes/reparaciones/{solicitudReparacion}/factura', [SolicitudReparacionController::class, 'factura'])
         ->name('solicitudes-reparacion.user.factura');
+    Route::get('ajustes/soporte', [SoporteController::class, 'userIndex'])->name('soporte.index');
+    Route::post('ajustes/soporte', [SoporteController::class, 'userStore'])->name('soporte.store');
+    Route::post('ajustes/soporte/{ticketSoporte}/responder', [SoporteController::class, 'userResponder'])->name('soporte.responder');
+    Route::post('ajustes/soporte/{ticketSoporte}/confirmar-resolucion', [SoporteController::class, 'userConfirmarResolucion'])->name('soporte.confirmar_resolucion');
+    Route::post('ajustes/soporte/{ticketSoporte}/cerrar', [SoporteController::class, 'userCerrar'])->name('soporte.cerrar');
 
     Route::get('ajustes/doble-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');

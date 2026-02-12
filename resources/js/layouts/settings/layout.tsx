@@ -27,6 +27,11 @@ const sidebarNavItems: NavItem[] = [
         icon: null,
     },
     {
+        title: 'Soporte',
+        href: '/ajustes/soporte',
+        icon: null,
+    },
+    {
         title: 'Contraseña',
         href: editPassword(),
         icon: null,
