@@ -12,7 +12,7 @@ import AuthLayout from '@/layouts/auth-layout';
 import { type FormEvent, useState } from 'react';
 
 export default function Register() {
-    const [erroresFront, setErroresFront] = useState<Record<string, string | null>>({});
+    const [errores, setErrores] = useState<Record<string, string | null>>({});
 
     const validarFrontend = (event: FormEvent<HTMLFormElement>) => {
         const formulario = event.currentTarget;
@@ -49,11 +49,11 @@ export default function Register() {
 
         if (Object.keys(nuevosErrores).length > 0) {
             event.preventDefault();
-            setErroresFront(nuevosErrores);
+            setErrores(nuevosErrores);
             return;
         }
 
-        setErroresFront({});
+        setErrores({});
     };
 
     return (
@@ -85,11 +85,11 @@ export default function Register() {
                                     name="name"
                                     placeholder="Tu nombre y apellidos"
                                     onInput={() =>
-                                        setErroresFront((prev) => ({ ...prev, name: null }))
+                                        setErrores((prev) => ({ ...prev, name: null }))
                                     }
                                 />
                                 <InputError
-                                    message={erroresFront.name || errors.name}
+                                    message={errores.name || errors.name}
                                     className="mt-2"
                                 />
                             </div>
@@ -106,10 +106,10 @@ export default function Register() {
                                     name="email"
                                     placeholder="correo@ejemplo.com"
                                     onInput={() =>
-                                        setErroresFront((prev) => ({ ...prev, email: null }))
+                                        setErrores((prev) => ({ ...prev, email: null }))
                                     }
                                 />
-                                <InputError message={erroresFront.email || errors.email} />
+                                <InputError message={errores.email || errors.email} />
                             </div>
 
                             <div className="grid gap-2">
@@ -124,10 +124,10 @@ export default function Register() {
                                     name="password"
                                     placeholder="Crea una contraseña"
                                     onInput={() =>
-                                        setErroresFront((prev) => ({ ...prev, password: null }))
+                                        setErrores((prev) => ({ ...prev, password: null }))
                                     }
                                 />
-                                <InputError message={erroresFront.password || errors.password} />
+                                <InputError message={errores.password || errors.password} />
                             </div>
 
                             <div className="grid gap-2">
@@ -144,11 +144,11 @@ export default function Register() {
                                     name="password_confirmation"
                                     placeholder="Repite la contraseña"
                                     onInput={() =>
-                                        setErroresFront((prev) => ({ ...prev, password_confirmation: null }))
+                                        setErrores((prev) => ({ ...prev, password_confirmation: null }))
                                     }
                                 />
                                 <InputError
-                                    message={erroresFront.password_confirmation || errors.password_confirmation}
+                                    message={errores.password_confirmation || errors.password_confirmation}
                                 />
                             </div>
 

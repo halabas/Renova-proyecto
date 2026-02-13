@@ -17,7 +17,7 @@ export default function Login({
     canResetPassword,
     canRegister,
 }) {
-    const [erroresFront, setErroresFront] = useState({});
+    const [errores, setErrores] = useState({});
 
     const validarFrontend = (event) => {
         const formulario = event.currentTarget;
@@ -40,11 +40,11 @@ export default function Login({
 
         if (Object.keys(nuevosErrores).length > 0) {
             event.preventDefault();
-            setErroresFront(nuevosErrores);
+            setErrores(nuevosErrores);
             return;
         }
 
-        setErroresFront({});
+        setErrores({});
     };
 
     return (
@@ -76,10 +76,10 @@ export default function Login({
                                     autoComplete="email"
                                     placeholder="correo@ejemplo.com"
                                     onInput={() =>
-                                        setErroresFront((prev) => ({ ...prev, email: null }))
+                                        setErrores((prev) => ({ ...prev, email: null }))
                                     }
                                 />
-                                <InputError message={erroresFront.email || errors.email} />
+                                <InputError message={errores.email || errors.email} />
                             </div>
 
                             <div className="grid gap-2">
@@ -105,10 +105,10 @@ export default function Login({
                                     autoComplete="current-password"
                                     placeholder="Tu contraseña"
                                     onInput={() =>
-                                        setErroresFront((prev) => ({ ...prev, password: null }))
+                                        setErrores((prev) => ({ ...prev, password: null }))
                                     }
                                 />
-                                <InputError message={erroresFront.password || errors.password} />
+                                <InputError message={errores.password || errors.password} />
                             </div>
 
                             <div className="flex items-center space-x-3">

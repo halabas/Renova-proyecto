@@ -36,6 +36,7 @@ class BuscarController extends Controller
                 nullif(split_part(coalesce(modelos.fotos, ''), ',', 1), '') as imagen
             ");
 
+            // Si hay busqueda, filtramos por nombre de modelo o marca.
         if ($busqueda !== '') {
             $consultaModelos->where(function ($w) use ($busqueda) {
                 $w->where('modelos.nombre', 'ilike', "%{$busqueda}%")
@@ -45,6 +46,8 @@ class BuscarController extends Controller
         if ($marca) {
             $consultaModelos->where('marcas.nombre', $marca);
         }
+
+        // Si hay color, filtramos por modelos que tengan moviles de ese color.
         if ($color) {
             $consultaModelos->whereExists(function ($q) use ($color) {
                 $q->select(DB::raw(1))

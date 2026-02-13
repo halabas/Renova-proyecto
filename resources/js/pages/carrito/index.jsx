@@ -1,11 +1,9 @@
-import { router, useForm } from "@inertiajs/react";
+import { router } from "@inertiajs/react";
 import AppLayout from "@/layouts/renova-layout";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import DireccionModal from "@/components/direcciones/direccion-modal";
+import DireccionesLista from "@/components/direcciones/direcciones-lista";
 import { useMemo, useState } from "react";
-import InputError from "@/components/input-error";
 
 export default function Carrito({ carrito, direcciones = [] }) {
   const productos = carrito.productos;
@@ -18,66 +16,11 @@ export default function Carrito({ carrito, direcciones = [] }) {
   );
   const [modalDireccionAbierto, setModalDireccionAbierto] = useState(false);
   const [direccionEditando, setDireccionEditando] = useState(null);
-  const [erroresFrontDireccion, setErroresFrontDireccion] = useState({});
-  const {
-    data: formDireccion,
-    setData: setFormDireccion,
-    post: guardarDireccion,
-    patch: actualizarDireccion,
-    processing: creandoDireccion,
-    reset: resetDireccion,
-    errors: erroresDireccion,
-    clearErrors,
-  } = useForm({
-    etiqueta: "Casa",
-    nombre: "",
-    apellidos: "",
-    telefono: "",
-    direccion: "",
-    ciudad: "",
-    provincia: "",
-    codigo_postal: "",
-    predeterminada: false,
-  });
-
   const abrirModalDireccion = (direccion = null) => {
-    if (direccion) {
-      setDireccionEditando(direccion.id);
-      setFormDireccion({
-        etiqueta: direccion.etiqueta || "Casa",
-        nombre: direccion.nombre || "",
-        apellidos: direccion.apellidos || "",
-        telefono: direccion.telefono || "",
-        direccion: direccion.direccion || "",
-        ciudad: direccion.ciudad || "",
-        provincia: direccion.provincia || "",
-        codigo_postal: direccion.codigo_postal || "",
-        predeterminada: Boolean(direccion.predeterminada),
-      });
-    } else {
-      setDireccionEditando(null);
-      resetDireccion();
-      setFormDireccion("etiqueta", "Casa");
-    }
-    clearErrors();
-    setErroresFrontDireccion({});
+    setDireccionEditando(direccion);
     setModalDireccionAbierto(true);
   };
-  const maxDirecciones = 3;
-  const puedeCrearDireccion = direcciones.length < maxDirecciones;
-
-  const validarDireccion = () => {
-    const nuevosErrores = {};
-    if (!String(formDireccion.etiqueta || "").trim()) nuevosErrores.etiqueta = "La etiqueta es obligatoria.";
-    if (!String(formDireccion.nombre || "").trim()) nuevosErrores.nombre = "El nombre es obligatorio.";
-    if (!String(formDireccion.apellidos || "").trim()) nuevosErrores.apellidos = "Los apellidos son obligatorios.";
-    if (!/^\d{9}$/.test(String(formDireccion.telefono || ""))) nuevosErrores.telefono = "El teléfono debe tener 9 dígitos.";
-    if (!String(formDireccion.direccion || "").trim()) nuevosErrores.direccion = "La dirección es obligatoria.";
-    if (!String(formDireccion.ciudad || "").trim()) nuevosErrores.ciudad = "La ciudad es obligatoria.";
-    if (!String(formDireccion.provincia || "").trim()) nuevosErrores.provincia = "La provincia es obligatoria.";
-    if (!/^\d{5}$/.test(String(formDireccion.codigo_postal || ""))) nuevosErrores.codigo_postal = "El código postal debe tener 5 dígitos.";
-    return nuevosErrores;
-  };
+  const puedeCrearDireccion = direcciones.length < 3;
 
   return (
     <AppLayout>
@@ -160,170 +103,14 @@ export default function Carrito({ carrito, direcciones = [] }) {
                 Elige la dirección donde quieres recibir el pedido.
               </p>
             </div>
-            <Dialog open={modalDireccionAbierto} onOpenChange={setModalDireccionAbierto}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outlineGray"
-                  size="sm"
-                  disabled={!puedeCrearDireccion}
-                  onClick={() => abrirModalDireccion()}
-                >
-                  Añadir dirección
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-xl">
-                <DialogHeader>
-                  <DialogTitle>
-                    {direccionEditando ? "Editar dirección" : "Nueva dirección"}
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="etiqueta">Etiqueta</Label>
-                    <Input
-                      id="etiqueta"
-                      value={formDireccion.etiqueta}
-                      onChange={(e) =>
-                        setFormDireccion("etiqueta", e.target.value)
-                      }
-                      placeholder="Casa / Trabajo"
-                    />
-                    <InputError message={erroresFrontDireccion.etiqueta || erroresDireccion.etiqueta} />
-                  </div>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="nombre">Nombre</Label>
-                      <Input
-                        id="nombre"
-                        value={formDireccion.nombre}
-                        onChange={(e) =>
-                          setFormDireccion("nombre", e.target.value)
-                        }
-                      />
-                      <InputError message={erroresFrontDireccion.nombre || erroresDireccion.nombre} />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="apellidos">Apellidos</Label>
-                      <Input
-                        id="apellidos"
-                        value={formDireccion.apellidos}
-                        onChange={(e) =>
-                          setFormDireccion("apellidos", e.target.value)
-                        }
-                      />
-                      <InputError message={erroresFrontDireccion.apellidos || erroresDireccion.apellidos} />
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="telefono">Teléfono</Label>
-                    <Input
-                      id="telefono"
-                      value={formDireccion.telefono}
-                      onChange={(e) =>
-                        setFormDireccion("telefono", e.target.value)
-                      }
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      maxLength={9}
-                      placeholder="Ej: 600000000"
-                    />
-                    <InputError message={erroresFrontDireccion.telefono || erroresDireccion.telefono} />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="direccion">Dirección</Label>
-                    <Input
-                      id="direccion"
-                      value={formDireccion.direccion}
-                      onChange={(e) =>
-                        setFormDireccion("direccion", e.target.value)
-                      }
-                      placeholder="Calle y número"
-                    />
-                    <InputError message={erroresFrontDireccion.direccion || erroresDireccion.direccion} />
-                  </div>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="ciudad">Ciudad</Label>
-                      <Input
-                        id="ciudad"
-                        value={formDireccion.ciudad}
-                        onChange={(e) =>
-                          setFormDireccion("ciudad", e.target.value)
-                        }
-                      />
-                      <InputError message={erroresFrontDireccion.ciudad || erroresDireccion.ciudad} />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="provincia">Provincia</Label>
-                      <Input
-                        id="provincia"
-                        value={formDireccion.provincia}
-                        onChange={(e) =>
-                          setFormDireccion("provincia", e.target.value)
-                        }
-                      />
-                      <InputError message={erroresFrontDireccion.provincia || erroresDireccion.provincia} />
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="codigo_postal">Código postal</Label>
-                    <Input
-                      id="codigo_postal"
-                      value={formDireccion.codigo_postal}
-                      onChange={(e) =>
-                        setFormDireccion("codigo_postal", e.target.value)
-                      }
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      maxLength={5}
-                      placeholder="Ej: 41001"
-                    />
-                    <InputError message={erroresFrontDireccion.codigo_postal || erroresDireccion.codigo_postal} />
-                  </div>
-                  <label className="flex items-center gap-2 text-sm text-slate-600">
-                    <input
-                      type="checkbox"
-                      checked={formDireccion.predeterminada}
-                      onChange={(e) =>
-                        setFormDireccion("predeterminada", e.target.checked)
-                      }
-                    />
-                    Marcar como predeterminada
-                  </label>
-                  <Button
-                    disabled={creandoDireccion}
-                    onClick={() => {
-                      const nuevosErrores = validarDireccion();
-                      if (Object.keys(nuevosErrores).length > 0) {
-                        setErroresFrontDireccion(nuevosErrores);
-                        return;
-                      }
-                      setErroresFrontDireccion({});
-                      return (direccionEditando
-                        ? actualizarDireccion(`/direcciones/${direccionEditando}`, {
-                            onSuccess: () => {
-                              resetDireccion();
-                              clearErrors();
-                              setErroresFrontDireccion({});
-                              setDireccionEditando(null);
-                              setModalDireccionAbierto(false);
-                            },
-                          })
-                        : guardarDireccion("/direcciones", {
-                            onSuccess: () => {
-                              resetDireccion();
-                              clearErrors();
-                              setErroresFrontDireccion({});
-                              setModalDireccionAbierto(false);
-                            },
-                          }));
-                    }}
-                  >
-                    {direccionEditando ? "Guardar cambios" : "Guardar dirección"}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <Button
+              variant="outlineGray"
+              size="sm"
+              disabled={!puedeCrearDireccion}
+              onClick={() => abrirModalDireccion()}
+            >
+              Añadir dirección
+            </Button>
           </div>
 
           {direcciones.length === 0 ? (
@@ -331,62 +118,14 @@ export default function Carrito({ carrito, direcciones = [] }) {
               Aún no tienes direcciones guardadas.
             </div>
           ) : (
-            <div className="mt-4 grid gap-3">
-              {direcciones.map((direccion) => (
-                <label
-                  key={direccion.id}
-                  className={`flex cursor-pointer items-start justify-between gap-4 rounded-xl border px-4 py-3 text-sm ${
-                    direccionSeleccionada === direccion.id
-                      ? "border-violet-300 bg-violet-50"
-                      : "border-slate-200 bg-white"
-                  }`}
-                >
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">
-                      {direccion.etiqueta} · {direccion.nombre} {direccion.apellidos}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {direccion.direccion}, {direccion.codigo_postal}{" "}
-                      {direccion.ciudad}, {direccion.provincia}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      Tel: {direccion.telefono}
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        variant="outlineGray"
-                        size="sm"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          abrirModalDireccion(direccion);
-                        }}
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="delete"
-                        size="sm"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          router.delete(`/direcciones/${direccion.id}`);
-                        }}
-                      >
-                        Eliminar
-                      </Button>
-                    </div>
-                  </div>
-                  <input
-                    type="radio"
-                    name="direccion"
-                    checked={direccionSeleccionada === direccion.id}
-                    onChange={() => setDireccionSeleccionada(direccion.id)}
-                    className="mt-1"
-                  />
-                </label>
-              ))}
-            </div>
+            <DireccionesLista
+              direcciones={direcciones}
+              seleccionable
+              direccionSeleccionada={direccionSeleccionada}
+              onSeleccionar={setDireccionSeleccionada}
+              onEditar={abrirModalDireccion}
+              onEliminar={(direccion) => router.delete(`/direcciones/${direccion.id}`)}
+            />
           )}
 
           {!puedeCrearDireccion && (
@@ -395,6 +134,17 @@ export default function Carrito({ carrito, direcciones = [] }) {
             </p>
           )}
         </div>
+        <DireccionModal
+          abierto={modalDireccionAbierto}
+          onAbiertoChange={(abierto) => {
+            setModalDireccionAbierto(abierto);
+            if (!abierto) {
+              setDireccionEditando(null);
+            }
+          }}
+          direccion={direccionEditando}
+          onGuardado={() => setDireccionEditando(null)}
+        />
 
         <div className="mt-8 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4">
           <span className="text-base font-semibold text-slate-900">

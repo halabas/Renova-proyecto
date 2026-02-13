@@ -15,16 +15,16 @@ class MovilController extends Controller
         $moviles = Movil::with('modelo.marca')->get();
 
         return Inertia::render('crud/crud', [
-            'nombre_modelo' => 'moviles',
-            'datos' => $moviles->map(fn($m) => [
-                'id' => $m->id,
-                'modelo_id' => $m->modelo->id,
-                'modelo' => $m->modelo->nombre,
-                'marca' => $m->modelo->marca->nombre,
-                'color' => $m->color,
-                'grado' => $m->grado,
-                'almacenamiento' => $m->almacenamiento,
-                'stock' => $m->stock,
+            'nombre_ruta' => 'moviles',
+            'datos' => $moviles->map(fn($movil) => [
+                'id' => $movil->id,
+                'modelo_id' => $movil->modelo->id,
+                'modelo' => $movil->modelo->nombre,
+                'marca' => $movil->modelo->marca->nombre,
+                'color' => $movil->color,
+                'grado' => $movil->grado,
+                'almacenamiento' => $movil->almacenamiento,
+                'stock' => $movil->stock,
             ]),
             'columnas' => ['id','modelo','marca','color','grado','almacenamiento','stock'],
             'campos' => [
@@ -32,9 +32,9 @@ class MovilController extends Controller
                     'name' => 'modelo_id',
                     'label' => 'Modelo',
                     'type' => 'select',
-                    'options' => Modelo::all()->map(fn($mod) => [
-                        'value' => $mod->id,
-                        'label' => $mod->nombre . ' - ' . $mod->marca->nombre
+                    'options' => Modelo::all()->map(fn($modelo) => [
+                        'value' => $modelo->id,
+                        'label' => $modelo->nombre . ' - ' . $modelo->marca->nombre
                     ])
                 ],
                 [
@@ -42,21 +42,21 @@ class MovilController extends Controller
                     'label' => 'Color',
                     'type' => 'select',
                     'options' => collect(['Negro','Blanco','Rojo','Azul','Verde','Amarillo','Morado','Gris','Dorado','Plateado','Naranja','Marron'])
-                        ->map(fn($c) => ['value' => $c, 'label' => $c])
+                        ->map(fn($color) => ['value' => $color, 'label' => $color])
                 ],
                 [
                     'name' => 'grado',
                     'label' => 'Grado',
                     'type' => 'select',
                     'options' => collect(['S','A+','A','B'])
-                        ->map(fn($g) => ['value' => $g, 'label' => $g])
+                        ->map(fn($grado) => ['value' => $grado, 'label' => $grado])
                 ],
                 [
                     'name' => 'almacenamiento',
                     'label' => 'Almacenamiento (GB)',
                     'type' => 'select',
                     'options' => collect([128,256,512,1024])
-                        ->map(fn($a) => ['value' => $a, 'label' => $a])
+                        ->map(fn($almacenamiento) => ['value' => $almacenamiento, 'label' => $almacenamiento])
                 ],
                 [
                     'name' => 'stock',

@@ -10,6 +10,9 @@ export default function Welcome({ modelos = [] }) {
   return (
     <AppLayout>
       <div className="w-full bg-slate-50">
+
+        {/*Banner principal */}
+
         <Banner
           etiqueta="Renova"
           titulo={
@@ -23,7 +26,7 @@ export default function Welcome({ modelos = [] }) {
           imagen={
             <img
               src="https://cdsassets.apple.com/live/7WUAS350/images/tech-specs/121031-iphone-16-pro.png"
-              alt="iPhone lineup"
+              alt="iPhone 16 Pro"
               className="w-full max-w-xl object-contain"
             />
           }
@@ -45,15 +48,17 @@ export default function Welcome({ modelos = [] }) {
               { title: "5G", label: "Ultra rápido" },
               { title: "108 MP", label: "Cámara" },
               { title: "+24H", label: "Batería" },
-            ].map((feature) => (
+            ].map((datos) => (
               <Etiqueta
-                key={feature.title}
-                title={feature.title}
-                label={feature.label}
+                key={datos.title}
+                title={datos.title}
+                label={datos.label}
               />
             ))}
           </div>
         </Banner>
+
+            {/* Sección de modelos */}
 
         <section className="mt-16">
           <div className="mx-auto w-full max-w-6xl px-6">

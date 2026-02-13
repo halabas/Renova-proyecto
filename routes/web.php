@@ -18,8 +18,10 @@ use App\Http\Controllers\Admin\AdminPedidosController;
 use App\Http\Controllers\PresupuestoController;
 use App\Http\Controllers\SolicitudReparacionController;
 use App\Http\Controllers\SoporteController;
-
+//RUTA HOME
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Ruta Buscar
 Route::get('/buscar', [BuscarController::class, 'index'])->name('buscar');
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -30,11 +32,14 @@ Route::get('reparaciones', [SolicitudReparacionController::class, 'index'])->nam
 Route::middleware('auth')->group(function () {
     Route::post('reparaciones/solicitudes', [SolicitudReparacionController::class, 'store'])
         ->name('reparaciones.solicitudes.store');
-    Route::get('reparaciones/solicitudes/pago-revision/success', [SolicitudReparacionController::class, 'pagoRevisionSuccess'])
+    Route::get('reparaciones/solicitudes/pago-revision/success', [SolicitudReparacionController::class, 'revisionPagada'])
         ->name('reparaciones.solicitudes.pago-revision.success');
 });
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+
+    // RESOURCES BASICOS
+
     Route::resource('marcas', MarcaController::class)->except(['show', 'create', 'edit']);
     Route::resource('modelos', ModeloController::class)->except(['create','edit','show']);
     Route::resource('moviles', MovilController::class)
@@ -44,16 +49,22 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         ->except(['create', 'edit', 'show']);
     Route::resource('componentes', ComponenteController::class)
         ->except(['create','edit','show']);
+
+    // RUTAS DE USUARIOS
     Route::get('usuarios', [UsuarioController::class, 'index'])
         ->name('usuarios.index');
     Route::delete('usuarios/{user}', [UsuarioController::class, 'destroy'])
         ->name('usuarios.destroy');
+
+    // RUTAS DE PEDIDOS
     Route::get('pedidos', [AdminPedidosController::class, 'index'])
         ->name('admin.pedidos.index');
     Route::get('pedidos/{pedido}/factura', [AdminPedidosController::class, 'factura'])
         ->name('admin.pedidos.factura');
     Route::post('pedidos/{pedido}/enviar', [AdminPedidosController::class, 'enviar'])
         ->name('admin.pedidos.enviar');
+
+    // RUTAS DE DEVOLUCIONES
     Route::get('devoluciones', [DevolucionController::class, 'index'])
         ->name('devoluciones.index');
     Route::post('devoluciones/{devolucion}/aprobar', [DevolucionController::class, 'aprobar'])
@@ -63,8 +74,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::post('devoluciones/{devolucion}/reembolsar', [DevolucionController::class, 'reembolsar'])
         ->name('devoluciones.reembolsar');
 });
-
+// RUTAS DE ADMINISTRACIÓN DE REPARACIONES Y SOPORTE
 Route::middleware(['auth', 'gestion_reparaciones'])->prefix('admin')->group(function () {
+
+    // RUTAS DE SOLICITUDES DE REPARACIÓN
     Route::get('solicitudes-reparacion', [SolicitudReparacionController::class, 'adminIndex'])
         ->name('admin.solicitudes-reparacion.index');
     Route::patch('solicitudes-reparacion/{solicitudReparacion}/tecnico', [SolicitudReparacionController::class, 'updateTecnico'])
@@ -79,6 +92,8 @@ Route::middleware(['auth', 'gestion_reparaciones'])->prefix('admin')->group(func
         ->name('admin.solicitudes-reparacion.enviar');
     Route::post('solicitudes-reparacion/{solicitudReparacion}/presupuesto', [PresupuestoController::class, 'store'])
         ->name('admin.solicitudes-reparacion.presupuesto.store');
+
+    // RUTAS DE SOPORTE
     Route::get('soporte', [SoporteController::class, 'adminIndex'])
         ->name('admin.soporte.index');
     Route::post('soporte/{ticketSoporte}/reclamar', [SoporteController::class, 'adminReclamar'])
@@ -90,7 +105,7 @@ Route::middleware(['auth', 'gestion_reparaciones'])->prefix('admin')->group(func
     Route::post('soporte/{ticketSoporte}/responder', [SoporteController::class, 'adminResponder'])
         ->name('admin.soporte.responder');
 });
-
+// RUTAS DE CARRITO
 Route::get('carrito', [CarritoController::class, 'index'])->name('carrito.index');
 Route::post('carrito/productos', [CarritoController::class, 'store'])->name('carrito.store');
 Route::patch('carrito/productos/{productoCarrito}', [CarritoController::class, 'update'])->name('carrito.update');
@@ -99,6 +114,8 @@ Route::delete('carrito', [CarritoController::class, 'vaciar'])->name('carrito.va
 Route::post('carrito/checkout', [CarritoController::class, 'checkout'])->name('carrito.checkout');
 Route::get('carrito/success', [CarritoController::class, 'success'])->name('carrito.success');
 Route::get('carrito/cancel', [CarritoController::class, 'cancel'])->name('carrito.cancel');
+
+// RUTAS DE DIRECCIONES
 Route::post('direcciones', [DireccionController::class, 'store'])->name('direcciones.store');
 Route::patch('direcciones/{direccion}', [DireccionController::class, 'update'])->name('direcciones.update');
 Route::delete('direcciones/{direccion}', [DireccionController::class, 'destroy'])->name('direcciones.destroy');

@@ -13,7 +13,7 @@ export default function ReparacionModal({ direcciones = [] }) {
   const direccionPredeterminada = direcciones.find((d) => d.predeterminada) || direcciones[0];
   const [abierto, setAbierto] = useState(false);
   const [modalidad, setModalidad] = useState("envio");
-  const [erroresFront, setErroresFront] = useState({});
+  const [errores, setErrores] = useState({});
   const { data, setData, post, processing, errors, reset } = useForm({
     direccion_id: direccionPredeterminada?.id || "",
     modelo_dispositivo: "",
@@ -48,15 +48,15 @@ export default function ReparacionModal({ direcciones = [] }) {
     }
 
     if (Object.keys(nuevosErrores).length > 0) {
-      setErroresFront(nuevosErrores);
+      setErrores(nuevosErrores);
       return;
     }
 
-    setErroresFront({});
+    setErrores({});
     post("/reparaciones/solicitudes", {
       onSuccess: () => {
         reset();
-        setErroresFront({});
+        setErrores({});
         setModalidad("envio");
         setAbierto(false);
       },
@@ -79,9 +79,9 @@ export default function ReparacionModal({ direcciones = [] }) {
         </DialogHeader>
 
         <form className="mt-8 space-y-7" onSubmit={enviar}>
-          {erroresFront.general ? (
+          {errores.general ? (
             <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-600">
-              {erroresFront.general}
+              {errores.general}
             </p>
           ) : null}
           <div className="space-y-4">
@@ -122,9 +122,9 @@ export default function ReparacionModal({ direcciones = [] }) {
                     ))}
                   </SelectContent>
                 </Select>
-                {(erroresFront.direccion_id || errors.direccion_id) ? (
+                {(errores.direccion_id || errors.direccion_id) ? (
                   <p className="mt-1 text-sm font-semibold text-red-500">
-                    {erroresFront.direccion_id || errors.direccion_id}
+                    {errores.direccion_id || errors.direccion_id}
                   </p>
                 ) : null}
                 <p className="text-xs text-slate-500">
@@ -145,7 +145,7 @@ export default function ReparacionModal({ direcciones = [] }) {
                 placeholder="Marca y modelo exactos"
                 value={data.modelo_dispositivo}
                 onChange={(e) => setData("modelo_dispositivo", e.target.value)}
-                error={erroresFront.modelo_dispositivo || errors.modelo_dispositivo}
+                error={errores.modelo_dispositivo || errors.modelo_dispositivo}
               />
               <div className="w-full">
                 <label className="mb-2 block text-base font-semibold text-slate-600">
@@ -169,9 +169,9 @@ export default function ReparacionModal({ direcciones = [] }) {
                     <SelectItem value="otros">Otras reparaciones</SelectItem>
                   </SelectContent>
                 </Select>
-                {(erroresFront.tipo_problema || errors.tipo_problema) ? (
+                {(errores.tipo_problema || errors.tipo_problema) ? (
                   <p className="mt-1 text-sm font-semibold text-red-500">
-                    {erroresFront.tipo_problema || errors.tipo_problema}
+                    {errores.tipo_problema || errors.tipo_problema}
                   </p>
                 ) : null}
               </div>
@@ -182,11 +182,11 @@ export default function ReparacionModal({ direcciones = [] }) {
               className="min-h-32"
               value={data.descripcion}
               onChange={(e) => setData("descripcion", e.target.value)}
-              error={erroresFront.descripcion || errors.descripcion}
+              error={errores.descripcion || errors.descripcion}
             />
-            {(erroresFront.modalidad || errors.modalidad) ? (
+            {(errores.modalidad || errors.modalidad) ? (
               <p className="text-sm font-semibold text-red-500">
-                {erroresFront.modalidad || errors.modalidad}
+                {errores.modalidad || errors.modalidad}
               </p>
             ) : null}
           </div>

@@ -30,11 +30,11 @@ Route::post('ajustes/pedidos/{pedido}/cancelar', [PedidosController::class, 'can
     Route::post('ajustes/pedidos/{pedido}/recibido', [PedidosController::class, 'marcarRecibido'])->name('pedidos.recibido');
     Route::post('ajustes/pedidos/{pedido}/ayuda', [PedidosController::class, 'ayuda'])->name('pedidos.ayuda');
     Route::get('ajustes/reparaciones', [SolicitudReparacionController::class, 'userIndex'])->name('solicitudes-reparacion.user.index');
-    Route::post('ajustes/reparaciones/{solicitudReparacion}/presupuesto/aceptar-pagar', [SolicitudReparacionController::class, 'aceptarYPagarPresupuesto'])
+    Route::post('ajustes/reparaciones/{solicitudReparacion}/presupuesto/aceptar-pagar', [SolicitudReparacionController::class, 'aceptarPresupuesto'])
         ->name('solicitudes-reparacion.user.presupuesto.aceptar-pagar');
     Route::post('ajustes/reparaciones/{solicitudReparacion}/presupuesto/rechazar', [SolicitudReparacionController::class, 'rechazarPresupuesto'])
         ->name('solicitudes-reparacion.user.presupuesto.rechazar');
-    Route::get('ajustes/reparaciones/{solicitudReparacion}/presupuesto/success', [SolicitudReparacionController::class, 'pagoPresupuestoSuccess'])
+    Route::get('ajustes/reparaciones/{solicitudReparacion}/presupuesto/success', [SolicitudReparacionController::class, 'presupuestoPagado'])
         ->name('solicitudes-reparacion.user.presupuesto.success');
     Route::post('ajustes/reparaciones/{solicitudReparacion}/recibido', [SolicitudReparacionController::class, 'marcarRecibido'])
         ->name('solicitudes-reparacion.user.recibido');

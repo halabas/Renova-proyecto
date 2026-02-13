@@ -13,7 +13,7 @@ export default function SolicitudesReparacionAdmin({ solicitudes, tecnicos = [],
   const esTecnico = usuarioActual?.rol === 'tecnico';
   const [solicitudModal, setSolicitudModal] = useState(null);
   const [abierto, setAbierto] = useState(false);
-  const [erroresFront, setErroresFront] = useState({});
+  const [errores, setErrores] = useState({});
   const { data, setData, post, processing, reset, errors, clearErrors } = useForm({
     importe_total: '',
     descripcion: '',
@@ -27,7 +27,7 @@ export default function SolicitudesReparacionAdmin({ solicitudes, tecnicos = [],
     setSolicitudModal(solicitud);
     reset();
     clearErrors();
-    setErroresFront({});
+    setErrores({});
     setAbierto(true);
   };
 
@@ -49,16 +49,16 @@ export default function SolicitudesReparacionAdmin({ solicitudes, tecnicos = [],
       nuevosErrores.descripcion = 'La descripción debe tener al menos 5 caracteres.';
     }
     if (Object.keys(nuevosErrores).length > 0) {
-      setErroresFront(nuevosErrores);
+      setErrores(nuevosErrores);
       return;
     }
-    setErroresFront({});
+    setErrores({});
     post(`/admin/solicitudes-reparacion/${solicitudModal.id}/presupuesto`, {
       preserveScroll: true,
       onSuccess: () => {
         setAbierto(false);
         setSolicitudModal(null);
-        setErroresFront({});
+        setErrores({});
         reset();
       },
     });
@@ -285,14 +285,14 @@ export default function SolicitudesReparacionAdmin({ solicitudes, tecnicos = [],
               step="0.01"
               value={data.importe_total}
               onChange={(e) => setData('importe_total', e.target.value)}
-              error={erroresFront.importe_total || errors.importe_total}
+              error={errores.importe_total || errors.importe_total}
               required
             />
             <Textarea
               label="Descripción"
               value={data.descripcion}
               onChange={(e) => setData('descripcion', e.target.value)}
-              error={erroresFront.descripcion || errors.descripcion}
+              error={errores.descripcion || errors.descripcion}
               required
               className="min-h-28"
             />
