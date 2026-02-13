@@ -1,0 +1,220 @@
+Vagrant.configure("2") do |config|
+  REPO_URL = "https://github.com/halabas/Renova-proyecto.git"
+  APP_DIR  = "/var/www/renova"
+  VM_IP    = "192.168.111.204"
+
+  config.vm.box = "debian/bookworm64"
+  config.vm.hostname = "renova-server"
+
+  config.vm.network "public_network",
+    ip: VM_IP,
+    netmask: "255.255.240.0"
+
+  config.vm.network "forwarded_port", guest: 80, host: 8080, auto_correct: true
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = 4096
+    vb.cpus = 2
+  end
+
+  config.vm.provision "shell", inline: <<-SHELL
+    set -e
+    export DEBIAN_FRONTEND=noninteractive
+
+    rm -f /etc/resolv.conf || true
+    printf "nameserver 1.1.1.1\\nnameserver 8.8.8.8\\n" > /etc/resolv.conf
+
+    apt-get update -y
+    apt-get install -y \
+      git curl unzip ca-certificates gnupg rsync acl \
+      apache2 \
+      bind9 bind9utils dnsutils \
+      postgresql postgresql-contrib \
+      php php-cli libapache2-mod-php \
+      php-mbstring php-xml php-curl php-zip php-gd php-pgsql \
+      proftpd-basic
+
+    if ! command -v composer >/dev/null 2>&1; then
+      curl -sS https://getcomposer.org/installer | php
+      mv composer.phar /usr/local/bin/composer
+    fi
+
+    if ! command -v node >/dev/null 2>&1; then
+      curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+      apt-get install -y nodejs
+    fi
+
+    sudo -u postgres psql -v ON_ERROR_STOP=1 <<'EOF'
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='renova') THEN
+    CREATE ROLE renova LOGIN PASSWORD 'renova';
+  END IF;
+END$$;
+EOF
+
+    sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='renova'" | grep -q 1 || \
+      sudo -u postgres psql -c "CREATE DATABASE renova OWNER renova;"
+
+    if [ ! -d "#{APP_DIR}/.git" ]; then
+      rm -rf #{APP_DIR}
+      git clone "#{REPO_URL}" #{APP_DIR}
+    else
+      cd #{APP_DIR}
+      git pull --rebase || true
+    fi
+
+    cd #{APP_DIR}
+
+    cat > .env <<'ENVEOF'
+APP_NAME=Renova
+APP_ENV=local
+APP_KEY="base64:<PON_TU_APP_KEY>"
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+STRIPE_KEY="<PON_TU_STRIPE_KEY>"
+STRIPE_SECRET="<PON_TU_STRIPE_SECRET>"
+
+APP_LOCALE=es
+APP_FALLBACK_LOCALE=es
+APP_FAKER_LOCALE=es_ES
+
+APP_MAINTENANCE_DRIVER=file
+
+BCRYPT_ROUNDS=12
+
+LOG_CHANNEL=stack
+LOG_STACK=single
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=debug
+
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=renova
+DB_USERNAME=renova
+DB_PASSWORD=renova
+
+SESSION_DRIVER=database
+SESSION_LIFETIME=120
+SESSION_ENCRYPT=false
+SESSION_PATH=/
+SESSION_DOMAIN=null
+
+BROADCAST_CONNECTION=reverb
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=database
+
+CACHE_STORE=database
+
+MEMCACHED_HOST=127.0.0.1
+
+REDIS_CLIENT=phpredis
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_ENCRYPTION=tls
+MAIL_PORT=587
+MAIL_USERNAME=deltof5@gmail.com
+MAIL_PASSWORD="<Password>"
+MAIL_FROM_ADDRESS="deltof5@gmail.com"
+MAIL_FROM_NAME="Renova"
+
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_DEFAULT_REGION=us-east-1
+AWS_BUCKET=
+AWS_USE_PATH_STYLE_ENDPOINT=false
+
+VITE_APP_NAME="${APP_NAME}"
+
+REVERB_APP_ID=592215
+REVERB_APP_KEY=<APP_KEY>
+REVERB_APP_SECRET=<APP_SECRET>
+REVERB_HOST="localhost"
+REVERB_PORT=8080
+REVERB_SCHEME=http
+
+VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
+VITE_REVERB_HOST="${REVERB_HOST}"
+VITE_REVERB_PORT="${REVERB_PORT}"
+VITE_REVERB_SCHEME="${REVERB_SCHEME}"
+ENVEOF
+
+    composer install --no-interaction --prefer-dist
+
+    mkdir -p storage/framework/views bootstrap/cache
+    chown -R www-data:www-data storage bootstrap/cache
+    chmod -R ug+rwX storage bootstrap/cache
+
+    sudo -u www-data php artisan key:generate --force || true
+    sudo -u www-data php artisan optimize:clear || true
+    sudo -u www-data php artisan migrate --force || true
+
+    npm install
+    npm run build
+
+    a2enmod rewrite headers
+
+    sed -i 's/^ServerTokens .*/ServerTokens Prod/' /etc/apache2/conf-available/security.conf || true
+    sed -i 's/^ServerSignature .*/ServerSignature Off/' /etc/apache2/conf-available/security.conf || true
+
+    cat >/etc/apache2/sites-available/renova.conf <<'EOF'
+<VirtualHost *:80>
+    ServerName www.renova.com
+    ServerAlias renova.com
+    DocumentRoot /var/www/renova/public
+    <Directory /var/www/renova/public>
+        AllowOverride All
+        Require all granted
+        Options -Indexes
+    </Directory>
+</VirtualHost>
+EOF
+
+    a2dissite 000-default.conf >/dev/null 2>&1 || true
+    a2ensite renova.conf
+    systemctl enable --now apache2
+    systemctl restart apache2
+
+    mkdir -p /etc/bind/zones
+
+    cat >/etc/bind/zones/db.renova.com <<'EOF'
+$TTL 86400
+@   IN  SOA ns1.renova.com. admin.renova.com. (
+        2026021301
+        3600
+        1800
+        604800
+        86400 )
+@       IN  NS   ns1.renova.com.
+ns1     IN  A    192.168.111.204
+@       IN  A    192.168.111.204
+www     IN  A    192.168.111.204
+EOF
+
+    cat >/etc/bind/zones/db.192.168.111 <<'EOF'
+$TTL 86400
+@   IN  SOA ns1.renova.com. admin.renova.com. (
+        2026021301
+        3600
+        1800
+        604800
+        86400 )
+@       IN  NS   ns1.renova.com.
+204     IN  PTR  renova.com.
+EOF
+
+    cat >/etc/bind/named.conf.local <<'EOF'
+zone "renova.com" {
+    type master;
+    file "/etc/bind/zones/db.renova.com";
+};
+
+zone "111.168.192.in-addr.arpa" {
+    type master;
+    file "/etc/bind/zones/db.192.168.111";
