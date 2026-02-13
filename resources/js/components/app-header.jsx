@@ -18,6 +18,7 @@ import { useInitials } from "@/hooks/use-initials";
 import { cn, isSameUrl } from "@/lib/utils";
 import { Link, router, usePage } from "@inertiajs/react";
 import { Mail, ShieldCheck, ShoppingCart } from "lucide-react";
+import { useState } from "react";
 import AppLogo from "./app-logo";
 import BarraBusqueda from "@/components/barra-busqueda";
 const mainNavItems = [
@@ -53,6 +54,10 @@ function AppHeader({ breadcrumbs = [] }) {
   const page = usePage();
   const { auth, carritoResumen, notificaciones } = page.props;
   const getInitials = useInitials();
+  const [mostrarLeidas, setMostrarLeidas] = useState(false);
+  const notificacionesVisibles = mostrarLeidas
+    ? (notificaciones?.items || [])
+    : (notificaciones?.items || []).filter((item) => !item.leida);
   return <>
       <div className="border-b border-sidebar-border/80">
         <div className="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
@@ -157,8 +162,17 @@ function AppHeader({ breadcrumbs = [] }) {
                       Marcar todas
                     </Button>
                   </div>
-                  {notificaciones?.items?.length ? <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
-                      {notificaciones.items.map((item) => <div
+                  <label className="mb-3 flex items-center gap-2 text-xs text-slate-600">
+                    <input
+                      type="checkbox"
+                      checked={mostrarLeidas}
+                      onChange={(event) => setMostrarLeidas(event.target.checked)}
+                      className="h-4 w-4 accent-violet-600"
+                    />
+                    Mostrar leídas
+                  </label>
+                  {notificacionesVisibles.length ? <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
+                      {notificacionesVisibles.map((item) => <div
     key={item.id}
     className={`rounded-xl border p-2 ${item.leida ? "border-slate-200 bg-white" : "border-violet-200 bg-violet-50/40"}`}
   >

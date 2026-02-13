@@ -113,9 +113,9 @@ public function share(Request $request): array
                 ];
             }
 
-            $items = $user->unreadNotifications()
+            $items = $user->notifications()
                 ->latest()
-                ->limit(8)
+                ->limit(30)
                 ->get()
                 ->map(function ($notification) {
                     $data = (array) $notification->data;
@@ -124,7 +124,7 @@ public function share(Request $request): array
                         'titulo' => $data['titulo'] ?? 'Notificación',
                         'mensaje' => $data['mensaje'] ?? '',
                         'url' => $data['url'] ?? null,
-                        'leida' => false,
+                        'leida' => $notification->read_at !== null,
                         'fecha' => $notification->created_at?->format('d/m/Y H:i'),
                     ];
                 })

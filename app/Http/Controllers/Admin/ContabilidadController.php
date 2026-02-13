@@ -82,16 +82,13 @@ class ContabilidadController extends Controller
             ];
         })->values();
 
-        $aniosDisponibles = collect(
-            Pedido::query()
-                ->selectRaw('DISTINCT EXTRACT(YEAR FROM created_at) as anio')
-                ->pluck('anio')
-                ->merge(
-                    Presupuesto::query()
-                        ->selectRaw('DISTINCT EXTRACT(YEAR FROM created_at) as anio')
-                        ->pluck('anio')
-                )
-        )
+        $aniosDisponibles = Pedido::query()
+            ->pluck('created_at')
+            ->merge(Presupuesto::query()->pluck('created_at'))
+            ->filter()
+            ->map(function ($fecha) {
+                return Carbon::parse($fecha)->year;
+            })
             ->map(fn ($value) => (int) $value)
             ->unique()
             ->sortDesc()
