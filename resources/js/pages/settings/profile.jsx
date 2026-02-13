@@ -1,14 +1,15 @@
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import { send } from '@/routes/verification';
 import { Transition } from '@headlessui/react';
-import { Form, Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 import DeleteUser from '@/components/delete-user';
+import DireccionesLista from '@/components/direcciones/direcciones-lista';
+import DireccionModal from '@/components/direcciones/direccion-modal';
 import HeadingSmall from '@/components/heading-small';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/renova-layout';
@@ -30,47 +31,8 @@ export default function Profile({ mustVerifyEmail, status }) {
     const [modalDireccionAbierto, setModalDireccionAbierto] = useState(false);
     const [direccionEditando, setDireccionEditando] = useState(null);
 
-    const {
-        data: formDireccion,
-        setData: setFormDireccion,
-        post: guardarDireccion,
-        patch: actualizarDireccion,
-        processing: creandoDireccion,
-        reset: resetDireccion,
-        errors: erroresDireccion,
-        clearErrors,
-    } = useForm({
-        etiqueta: 'Casa',
-        nombre: '',
-        apellidos: '',
-        telefono: '',
-        direccion: '',
-        ciudad: '',
-        provincia: '',
-        codigo_postal: '',
-        predeterminada: false,
-    });
-
     const abrirModalDireccion = (direccion = null) => {
-        if (direccion) {
-            setDireccionEditando(direccion.id);
-            setFormDireccion({
-                etiqueta: direccion.etiqueta || 'Casa',
-                nombre: direccion.nombre || '',
-                apellidos: direccion.apellidos || '',
-                telefono: direccion.telefono || '',
-                direccion: direccion.direccion || '',
-                ciudad: direccion.ciudad || '',
-                provincia: direccion.provincia || '',
-                codigo_postal: direccion.codigo_postal || '',
-                predeterminada: Boolean(direccion.predeterminada),
-            });
-        } else {
-            setDireccionEditando(null);
-            resetDireccion();
-            setFormDireccion('etiqueta', 'Casa');
-        }
-        clearErrors();
+        setDireccionEditando(direccion);
         setModalDireccionAbierto(true);
     };
 
@@ -200,264 +162,14 @@ export default function Profile({ mustVerifyEmail, status }) {
                                     direcciones.
                                 </p>
                             </div>
-                            <Dialog
-                                open={modalDireccionAbierto}
-                                onOpenChange={setModalDireccionAbierto}
+                            <Button
+                                variant="outlineGray"
+                                size="sm"
+                                disabled={!puedeCrearDireccion}
+                                onClick={() => abrirModalDireccion()}
                             >
-                                <DialogTrigger asChild>
-                                    <Button
-                                        variant="outlineGray"
-                                        size="sm"
-                                        disabled={!puedeCrearDireccion}
-                                        onClick={() => abrirModalDireccion()}
-                                    >
-                                        Añadir dirección
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-xl">
-                                    <DialogHeader>
-                                        <DialogTitle>
-                                            {direccionEditando
-                                                ? 'Editar dirección'
-                                                : 'Nueva dirección'}
-                                        </DialogTitle>
-                                    </DialogHeader>
-                                    <div className="grid gap-4">
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="etiqueta">
-                                                Etiqueta
-                                            </Label>
-                                            <Input
-                                                id="etiqueta"
-                                                value={formDireccion.etiqueta}
-                                                onChange={(e) =>
-                                                    setFormDireccion(
-                                                        'etiqueta',
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                placeholder="Casa / Trabajo"
-                                            />
-                                            <InputError
-                                                message={
-                                                    erroresDireccion.etiqueta
-                                                }
-                                            />
-                                        </div>
-                                        <div className="grid gap-2 sm:grid-cols-2">
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="nombre">
-                                                    Nombre
-                                                </Label>
-                                                <Input
-                                                    id="nombre"
-                                                    value={formDireccion.nombre}
-                                                    onChange={(e) =>
-                                                        setFormDireccion(
-                                                            'nombre',
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                />
-                                                <InputError
-                                                    message={
-                                                        erroresDireccion.nombre
-                                                    }
-                                                />
-                                            </div>
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="apellidos">
-                                                    Apellidos
-                                                </Label>
-                                                <Input
-                                                    id="apellidos"
-                                                    value={
-                                                        formDireccion.apellidos
-                                                    }
-                                                    onChange={(e) =>
-                                                        setFormDireccion(
-                                                            'apellidos',
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                />
-                                                <InputError
-                                                    message={
-                                                        erroresDireccion.apellidos
-                                                    }
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="telefono">
-                                                Teléfono
-                                            </Label>
-                                            <Input
-                                                id="telefono"
-                                                value={formDireccion.telefono}
-                                                onChange={(e) =>
-                                                    setFormDireccion(
-                                                        'telefono',
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                inputMode="numeric"
-                                                pattern="[0-9]*"
-                                                maxLength={9}
-                                                placeholder="Ej: 600000000"
-                                            />
-                                            <InputError
-                                                message={
-                                                    erroresDireccion.telefono
-                                                }
-                                            />
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="direccion">
-                                                Dirección
-                                            </Label>
-                                            <Input
-                                                id="direccion"
-                                                value={formDireccion.direccion}
-                                                onChange={(e) =>
-                                                    setFormDireccion(
-                                                        'direccion',
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                placeholder="Calle y número"
-                                            />
-                                            <InputError
-                                                message={
-                                                    erroresDireccion.direccion
-                                                }
-                                            />
-                                        </div>
-                                        <div className="grid gap-2 sm:grid-cols-2">
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="ciudad">
-                                                    Ciudad
-                                                </Label>
-                                                <Input
-                                                    id="ciudad"
-                                                    value={formDireccion.ciudad}
-                                                    onChange={(e) =>
-                                                        setFormDireccion(
-                                                            'ciudad',
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                />
-                                                <InputError
-                                                    message={
-                                                        erroresDireccion.ciudad
-                                                    }
-                                                />
-                                            </div>
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="provincia">
-                                                    Provincia
-                                                </Label>
-                                                <Input
-                                                    id="provincia"
-                                                    value={
-                                                        formDireccion.provincia
-                                                    }
-                                                    onChange={(e) =>
-                                                        setFormDireccion(
-                                                            'provincia',
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                />
-                                                <InputError
-                                                    message={
-                                                        erroresDireccion.provincia
-                                                    }
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="codigo_postal">
-                                                Código postal
-                                            </Label>
-                                            <Input
-                                                id="codigo_postal"
-                                                value={
-                                                    formDireccion.codigo_postal
-                                                }
-                                                onChange={(e) =>
-                                                    setFormDireccion(
-                                                        'codigo_postal',
-                                                        e.target.value,
-                                                    )
-                                                }
-                                                inputMode="numeric"
-                                                pattern="[0-9]*"
-                                                maxLength={5}
-                                                placeholder="Ej: 41001"
-                                            />
-                                            <InputError
-                                                message={
-                                                    erroresDireccion.codigo_postal
-                                                }
-                                            />
-                                        </div>
-                                        <label className="flex items-center gap-2 text-sm text-slate-600">
-                                            <input
-                                                type="checkbox"
-                                                checked={
-                                                    formDireccion.predeterminada
-                                                }
-                                                onChange={(e) =>
-                                                    setFormDireccion(
-                                                        'predeterminada',
-                                                        e.target.checked,
-                                                    )
-                                                }
-                                            />
-                                            Marcar como predeterminada
-                                        </label>
-                                        <Button
-                                            disabled={creandoDireccion}
-                                            onClick={() =>
-                                                (direccionEditando
-                                                    ? actualizarDireccion(
-                                                          `/direcciones/${direccionEditando}`,
-                                                          {
-                                                              onSuccess: () => {
-                                                                  resetDireccion();
-                                                                  clearErrors();
-                                                                  setDireccionEditando(
-                                                                      null,
-                                                                  );
-                                                                  setModalDireccionAbierto(
-                                                                      false,
-                                                                  );
-                                                              },
-                                                          },
-                                                      )
-                                                    : guardarDireccion(
-                                                          '/direcciones',
-                                                          {
-                                                              onSuccess: () => {
-                                                                  resetDireccion();
-                                                                  clearErrors();
-                                                                  setModalDireccionAbierto(
-                                                                      false,
-                                                                  );
-                                                              },
-                                                          },
-                                                      ))
-                                            }
-                                        >
-                                            {direccionEditando
-                                                ? 'Guardar cambios'
-                                                : 'Guardar dirección'}
-                                        </Button>
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
+                                Añadir dirección
+                            </Button>
                         </div>
 
                         {direcciones.length === 0 ? (
@@ -465,64 +177,13 @@ export default function Profile({ mustVerifyEmail, status }) {
                                 Aún no tienes direcciones guardadas.
                             </div>
                         ) : (
-                            <div className="mt-4 grid gap-3">
-                                {direcciones.map((direccion) => (
-                                    <div
-                                        key={direccion.id}
-                                        className="flex flex-wrap items-start justify-between gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"
-                                    >
-                                        <div>
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <p className="text-sm font-semibold text-slate-900">
-                                                    {direccion.etiqueta} ·{' '}
-                                                    {direccion.nombre}{' '}
-                                                    {direccion.apellidos}
-                                                </p>
-                                                {direccion.predeterminada && (
-                                                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">
-                                                        Predeterminada
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <p className="text-xs text-slate-500">
-                                                {direccion.direccion},{' '}
-                                                {direccion.codigo_postal}{' '}
-                                                {direccion.ciudad},{' '}
-                                                {direccion.provincia}
-                                            </p>
-                                            <p className="text-xs text-slate-500">
-                                                Tel: {direccion.telefono}
-                                            </p>
-                                        </div>
-                                        <div className="flex flex-wrap gap-2">
-                                            <Button
-                                                type="button"
-                                                variant="outlineGray"
-                                                size="sm"
-                                                onClick={() =>
-                                                    abrirModalDireccion(
-                                                        direccion,
-                                                    )
-                                                }
-                                            >
-                                                Editar
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                variant="delete"
-                                                size="sm"
-                                                onClick={() =>
-                                                    router.delete(
-                                                        `/direcciones/${direccion.id}`,
-                                                    )
-                                                }
-                                            >
-                                                Eliminar
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                            <DireccionesLista
+                                direcciones={direcciones}
+                                onEditar={abrirModalDireccion}
+                                onEliminar={(direccion) =>
+                                    router.delete(`/direcciones/${direccion.id}`)
+                                }
+                            />
                         )}
 
                         {!puedeCrearDireccion && (
@@ -531,6 +192,17 @@ export default function Profile({ mustVerifyEmail, status }) {
                             </p>
                         )}
                     </div>
+                    <DireccionModal
+                        abierto={modalDireccionAbierto}
+                        onAbiertoChange={(abierto) => {
+                            setModalDireccionAbierto(abierto);
+                            if (!abierto) {
+                                setDireccionEditando(null);
+                            }
+                        }}
+                        direccion={direccionEditando}
+                        onGuardado={() => setDireccionEditando(null)}
+                    />
                 </div>
 
                 <DeleteUser />

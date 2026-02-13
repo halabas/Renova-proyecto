@@ -14,7 +14,7 @@ class MarcaController extends Controller
         $marcas = Marca::all();
 
         return Inertia::render('crud/crud', [
-            'nombre_modelo' => 'marcas',
+            'nombre_ruta' => 'marcas',
             'datos' => $marcas,
             'columnas' => ['id', 'nombre', 'eslogan'],
             'campos' => [

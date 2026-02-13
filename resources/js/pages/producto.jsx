@@ -148,7 +148,7 @@ export default function Producto({
   const [imagenModeloActiva, setImagenModeloActiva] = useState(imagenesModelo[0] || null);
 
 
-  const claveVariante = `${colorActivo}|${gradoActivo}|${capacidadActiva}`;
+  const claveVariante = `${colorActivo}.${gradoActivo}.${capacidadActiva}`;
   const stockDisponible = stockPorVariante[claveVariante] ?? 0;
   const hayVariantesConStock = Object.values(stockPorVariante).some((stock) => stock > 0);
 
@@ -397,7 +397,7 @@ export default function Producto({
               return (
                 <div key={grado.titulo} className="rounded-2xl border border-slate-200 p-5">
                   <div className="mb-3 flex items-start gap-3">
-                    <div className={`rounded-xl bg-gradient-to-r ${grado.colorIcono} p-3 text-white`}>
+                    <div className={`rounded-xl bg-linear-to-r ${grado.colorIcono} p-3 text-white`}>
                       <Icono className="h-5 w-5" />
                     </div>
                     <div>

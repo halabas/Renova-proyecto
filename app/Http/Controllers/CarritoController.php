@@ -238,7 +238,7 @@ class CarritoController extends Controller
                 ->with('error', 'Selecciona una dirección válida.');
         }
 
-        $lineItems = [];
+        $lineasCarrito = [];
         foreach ($productosCarrito as $producto) {
             $nombre = $this->nombreProducto($producto);
             $descripcion = '';
@@ -248,7 +248,7 @@ class CarritoController extends Controller
                     . $producto->producto->almacenamiento . 'GB';
             }
 
-            $lineItems[] = [
+            $lineasCarrito[] = [
                 'price_data' => [
                     'currency' => 'eur',
                     'product_data' => [
@@ -311,7 +311,7 @@ class CarritoController extends Controller
         $session = StripeSession::create([
             'mode' => 'payment',
             'payment_method_types' => ['card'],
-            'line_items' => $lineItems,
+            'line_items' => $lineasCarrito,
             'customer_email' => $user->email,
             'success_url' => route('carrito.success') . '?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => route('carrito.cancel'),

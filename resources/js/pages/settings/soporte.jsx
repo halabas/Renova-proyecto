@@ -22,7 +22,7 @@ export default function SoporteUsuario({ tickets, categorias, ticketAbiertoInici
   const paginaAnterior = tickets?.prev_page_url;
   const paginaSiguiente = tickets?.next_page_url;
   const [respuestas, setRespuestas] = useState({});
-  const [erroresFront, setErroresFront] = useState({});
+  const [errores, setErrores] = useState({});
   const [erroresRespuesta, setErroresRespuesta] = useState({});
   const [ticketAbiertoId, setTicketAbiertoId] = useState(null);
   const [modalNuevoTicketAbierto, setModalNuevoTicketAbierto] = useState(false);
@@ -84,15 +84,15 @@ export default function SoporteUsuario({ tickets, categorias, ticketAbiertoInici
                     nuevosErrores.mensaje = 'El mensaje debe tener al menos 5 caracteres.';
                   }
                   if (Object.keys(nuevosErrores).length > 0) {
-                    setErroresFront(nuevosErrores);
+                    setErrores(nuevosErrores);
                     return;
                   }
-                  setErroresFront({});
+                  setErrores({});
                   post('/ajustes/soporte', {
                     preserveScroll: true,
                     onSuccess: () => {
                       reset('asunto', 'mensaje');
-                      setErroresFront({});
+                      setErrores({});
                       setModalNuevoTicketAbierto(false);
                     },
                   });
@@ -102,7 +102,7 @@ export default function SoporteUsuario({ tickets, categorias, ticketAbiertoInici
                   label="Asunto"
                   value={data.asunto}
                   onChange={(e) => setData('asunto', e.target.value)}
-                  error={erroresFront.asunto || errors.asunto}
+                  error={errores.asunto || errors.asunto}
                   required
                 />
                 <div>
@@ -116,13 +116,13 @@ export default function SoporteUsuario({ tickets, categorias, ticketAbiertoInici
                       <option key={categoria} value={categoria}>{categoria}</option>
                     ))}
                   </select>
-                  <InputError message={erroresFront.categoria || errors.categoria} />
+                  <InputError message={errores.categoria || errors.categoria} />
                 </div>
                 <Textarea
                   label="Mensaje"
                   value={data.mensaje}
                   onChange={(e) => setData('mensaje', e.target.value)}
-                  error={erroresFront.mensaje || errors.mensaje}
+                  error={errores.mensaje || errors.mensaje}
                   required
                   className="min-h-24"
                 />

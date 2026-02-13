@@ -21,13 +21,13 @@ export default function Orders({ pedidos }) {
     const [modalDevolucionAbierto, setModalDevolucionAbierto] = useState(false);
     const [pedidoDevolucion, setPedidoDevolucion] = useState(null);
     const [pedidoAyuda, setPedidoAyuda] = useState(null);
-    const [erroresFrontDevolucion, setErroresFrontDevolucion] = useState({});
+    const [erroresDevolucion, setErroresDevolucion] = useState({});
     const {
         data: formDevolucion,
         setData: setFormDevolucion,
         post: enviarDevolucion,
         processing: enviandoDevolucion,
-        errors: erroresDevolucion,
+        errors: erroresBackendDevolucion,
         reset: resetDevolucion,
         clearErrors,
     } = useForm({
@@ -68,7 +68,7 @@ export default function Orders({ pedidos }) {
             comentario: '',
         });
         clearErrors();
-        setErroresFrontDevolucion({});
+        setErroresDevolucion({});
         setModalDevolucionAbierto(true);
     };
 
@@ -76,7 +76,7 @@ export default function Orders({ pedidos }) {
         setModalDevolucionAbierto(false);
         setPedidoDevolucion(null);
         resetDevolucion();
-        setErroresFrontDevolucion({});
+        setErroresDevolucion({});
     };
 
     const puedeSolicitarDevolucion = (pedido) => {
@@ -131,7 +131,7 @@ export default function Orders({ pedidos }) {
                                         Otro motivo
                                     </option>
                                 </select>
-                                <InputError message={erroresFrontDevolucion.motivo || erroresDevolucion.motivo} />
+                                <InputError message={erroresDevolucion.motivo || erroresBackendDevolucion.motivo} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="comentario">Comentario (opcional)</Label>
@@ -143,7 +143,7 @@ export default function Orders({ pedidos }) {
                                     }
                                     placeholder="Cuéntanos más detalles"
                                 />
-                                <InputError message={erroresFrontDevolucion.comentario || erroresDevolucion.comentario} />
+                                <InputError message={erroresDevolucion.comentario || erroresBackendDevolucion.comentario} />
                             </div>
                             <p className="text-xs text-slate-500">
                                 Se rechazarán productos con signos de uso, manipulados o bajo criterio de la empresa.
@@ -173,10 +173,10 @@ export default function Orders({ pedidos }) {
                                             nuevosErrores.comentario = 'El comentario no puede superar 1000 caracteres.';
                                         }
                                         if (Object.keys(nuevosErrores).length > 0) {
-                                            setErroresFrontDevolucion(nuevosErrores);
+                                            setErroresDevolucion(nuevosErrores);
                                             return;
                                         }
-                                        setErroresFrontDevolucion({});
+                                        setErroresDevolucion({});
                                         enviarDevolucion(
                                             `/ajustes/pedidos/${pedidoDevolucion.id}/devolucion`,
                                             {

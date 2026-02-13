@@ -109,7 +109,7 @@ class SolicitudReparacionController extends Controller
         return Inertia::location($session->url);
     }
 
-    public function pagoRevisionSuccess(Request $request)
+    public function revisionPagada(Request $request)
     {
         $user = $request->user();
         if (! $user) {
@@ -233,7 +233,7 @@ class SolicitudReparacionController extends Controller
             'tecnico_id' => ['required', 'integer', 'exists:users,id'],
         ]);
 
-        $tecnicoId = (int) $datos['tecnico_id'];
+        $tecnicoId = $datos['tecnico_id'];
 
         if ($tecnicoId) {
             $tecnico = User::find($tecnicoId);
@@ -262,7 +262,7 @@ class SolicitudReparacionController extends Controller
             abort(403);
         }
 
-        if ($solicitudReparacion->tecnico_id && (int) $solicitudReparacion->tecnico_id !== (int) $user->id) {
+        if ($solicitudReparacion->tecnico_id &&  $solicitudReparacion->tecnico_id !== $user->id) {
             return back()->with('error', 'Esta solicitud ya está asignada a otro técnico.');
         }
 
@@ -281,7 +281,7 @@ class SolicitudReparacionController extends Controller
         }
 
         $esAdmin = $user->rol === 'admin';
-        $esTecnicoAsignado = $user->rol === 'tecnico' && (int) $solicitudReparacion->tecnico_id === (int) $user->id;
+        $esTecnicoAsignado = $user->rol === 'tecnico' && $solicitudReparacion->tecnico_id ===  $user->id;
 
         if (! $esAdmin && ! $esTecnicoAsignado) {
             abort(403);
@@ -305,7 +305,7 @@ class SolicitudReparacionController extends Controller
         }
 
         $esAdmin = $user->rol === 'admin';
-        $esTecnicoAsignado = $user->rol === 'tecnico' && (int) $solicitudReparacion->tecnico_id === (int) $user->id;
+        $esTecnicoAsignado = $user->rol === 'tecnico' &&  $solicitudReparacion->tecnico_id === $user->id;
 
         if (! $esAdmin && ! $esTecnicoAsignado) {
             abort(403);
@@ -329,7 +329,7 @@ class SolicitudReparacionController extends Controller
         }
 
         $esAdmin = $user->rol === 'admin';
-        $esTecnicoAsignado = $user->rol === 'tecnico' && (int) $solicitudReparacion->tecnico_id === (int) $user->id;
+        $esTecnicoAsignado = $user->rol === 'tecnico' && $solicitudReparacion->tecnico_id == $user->id;
 
         if (! $esAdmin && ! $esTecnicoAsignado) {
             abort(403);
@@ -348,7 +348,7 @@ class SolicitudReparacionController extends Controller
     public function marcarRecibido(Request $request, SolicitudReparacion $solicitudReparacion)
     {
         $user = $request->user();
-        if (! $user || (int) $solicitudReparacion->user_id !== (int) $user->id) {
+        if (! $user || $solicitudReparacion->user_id != $user->id) {
             return redirect()->route('login');
         }
 
@@ -415,7 +415,7 @@ class SolicitudReparacionController extends Controller
         return back()->with('success', 'Presupuesto rechazado.');
     }
 
-    public function aceptarYPagarPresupuesto(Request $request, SolicitudReparacion $solicitudReparacion)
+    public function aceptarPresupuesto(Request $request, SolicitudReparacion $solicitudReparacion)
     {
         $user = $request->user();
         if (! $user || $solicitudReparacion->user_id !== $user->id) {
@@ -463,7 +463,7 @@ class SolicitudReparacionController extends Controller
         return Inertia::location($session->url);
     }
 
-    public function pagoPresupuestoSuccess(Request $request, SolicitudReparacion $solicitudReparacion)
+    public function presupuestoPagado(Request $request, SolicitudReparacion $solicitudReparacion)
     {
         $user = $request->user();
         if (! $user || $solicitudReparacion->user_id !== $user->id) {
@@ -476,8 +476,8 @@ class SolicitudReparacionController extends Controller
         }
 
         if (
-            (int) ($pagoPendiente['user_id'] ?? 0) !== (int) $user->id
-            || (int) ($pagoPendiente['solicitud_id'] ?? 0) !== (int) $solicitudReparacion->id
+            ($pagoPendiente['user_id'] ?? 0) != $user->id
+            || ($pagoPendiente['solicitud_id'] ?? 0) != $solicitudReparacion->id
         ) {
             return redirect()->route('solicitudes-reparacion.user.index')->with('error', 'No se pudo validar el pago del presupuesto.');
         }
@@ -500,7 +500,7 @@ class SolicitudReparacionController extends Controller
         }
 
         $presupuesto = $solicitudReparacion->presupuesto;
-        if (! $presupuesto || (int) $presupuesto->id !== (int) ($pagoPendiente['presupuesto_id'] ?? 0)) {
+        if (! $presupuesto || $presupuesto->id != ($pagoPendiente['presupuesto_id'] ?? 0)) {
             return redirect()->route('solicitudes-reparacion.user.index')->with('error', 'No se encontró el presupuesto a confirmar.');
         }
 
@@ -518,7 +518,7 @@ class SolicitudReparacionController extends Controller
     public function factura(Request $request, SolicitudReparacion $solicitudReparacion)
     {
         $user = $request->user();
-        if (! $user || (int) $solicitudReparacion->user_id !== (int) $user->id) {
+        if (! $user || $solicitudReparacion->user_id != $user->id) {
             return redirect()->route('login');
         }
 
@@ -539,7 +539,7 @@ class SolicitudReparacionController extends Controller
     public function ayuda(Request $request, SolicitudReparacion $solicitudReparacion)
     {
         $user = $request->user();
-        if (! $user || (int) $solicitudReparacion->user_id !== (int) $user->id) {
+        if (! $user || $solicitudReparacion->user_id != $user->id) {
             return redirect()->route('login');
         }
 

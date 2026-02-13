@@ -14,10 +14,10 @@ class CategoriaController extends Controller
         $categorias = Categoria::all();
 
         return Inertia::render('crud/crud', [
-            'nombre_modelo' => 'categorias',
-            'datos' => $categorias->map(fn($c) => [
-                'id' => $c->id,
-                'nombre' => $c->nombre,
+            'nombre_ruta' => 'categorias',
+            'datos' => $categorias->map(fn($categoria) => [
+                'id' => $categoria->id,
+                'nombre' => $categoria->nombre,
             ]),
             'columnas' => ['id','nombre'],
             'campos' => [
@@ -84,12 +84,12 @@ class CategoriaController extends Controller
 
     private function comprobarDuplicado(string $nombre, ?int $categoria_id_edit = null): ?Categoria
     {
-        $query = Categoria::whereRaw('LOWER(nombre) = ?', [strtolower($nombre)]);
+        $consulta = Categoria::whereRaw('LOWER(nombre) = ?', [strtolower($nombre)]);
 
         if ($categoria_id_edit) {
-            $query->where('id', '<>', $categoria_id_edit);
+            $consulta->where('id', '<>', $categoria_id_edit);
         }
 
-        return $query->first();
+        return $consulta->first();
     }
 }

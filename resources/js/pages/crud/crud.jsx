@@ -6,29 +6,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
-export default function Crud({ nombre_modelo, datos, columnas, campos, ObjetoEditando }) {
-  const [editando, setEditando] = useState(!!ObjetoEditando);
-  const [erroresFront, setErroresFront] = useState({});
+export default function Crud({ nombre_ruta, datos, columnas, campos }) {
+  const [editando, setEditando] = useState(false);
+  const [errores, setErrores] = useState({});
   const [modalEliminarAbierto, setModalEliminarAbierto] = useState(false);
   const [idAEliminar, setIdAEliminar] = useState(null);
-  const valoresIniciales = { ...(ObjetoEditando || {}), fotos_archivos: [] };
+  const valoresIniciales = { fotos_archivos: [] };
   const { data: datosFormulario, setData, post, reset, errors, clearErrors } = useForm(valoresIniciales);
 
-  const agregarArchivosFotos = (archivosNuevos) => {
+  const agregarFotos = (fotosNuevas) => {
     const actuales = Array.isArray(datosFormulario.fotos_archivos) ? datosFormulario.fotos_archivos : [];
-    const mapa = new Map();
-
-    [...actuales, ...archivosNuevos].forEach((archivo) => {
-      if (!archivo) {
-        return;
-      }
-      const clave = `${archivo.name}-${archivo.size}-${archivo.lastModified}`;
-      if (!mapa.has(clave)) {
-        mapa.set(clave, archivo);
-      }
-    });
-
-    setData('fotos_archivos', Array.from(mapa.values()));
+    const nuevosValidos = (fotosNuevas || []).filter((foto) => foto != null);
+    setData('fotos_archivos', [...actuales, ...nuevosValidos]);
   };
 
   const obtenerFotosExistentes = () => {
@@ -38,7 +27,7 @@ export default function Crud({ nombre_modelo, datos, columnas, campos, ObjetoEdi
       .filter((foto) => foto !== '');
   };
 
-  const quitarArchivoFoto = (indice) => {
+  const quitarFotoNueva = (indice) => {
     const actuales = Array.isArray(datosFormulario.fotos_archivos) ? datosFormulario.fotos_archivos : [];
     setData(
       'fotos_archivos',
@@ -69,6 +58,8 @@ export default function Crud({ nombre_modelo, datos, columnas, campos, ObjetoEdi
         const archivos = Array.isArray(datosFormulario.fotos_archivos) ? datosFormulario.fotos_archivos : [];
         if (!urls && archivos.length === 0) {
           nuevosErrores[camp.name] = 'Debes añadir al menos una foto.';
+        } else if (archivos.length > 5) {
+          nuevosErrores[camp.name] = 'No puedes subir más de 5 fotos.';
         }
         return;
       }
@@ -83,21 +74,20 @@ export default function Crud({ nombre_modelo, datos, columnas, campos, ObjetoEdi
       }
     });
     if (Object.keys(nuevosErrores).length > 0) {
-      setErroresFront(nuevosErrores);
+      setErrores(nuevosErrores);
       return;
     }
-    setErroresFront({});
+    setErrores({});
 
     if (editando) {
-      // Con archivos adjuntos, enviamos como POST + _method para que PHP procese bien el multipart.
-      post(`/admin/${nombre_modelo}/${datosFormulario.id}`, {
+      post(`/admin/${nombre_ruta}/${datosFormulario.id}`, {
         forceFormData: true,
-        onSuccess: () => { reset(); setEditando(false); setErroresFront({}); clearErrors(); },
+        onSuccess: () => { reset(); setEditando(false); setErrores({}); clearErrors(); },
       });
     } else {
-      post(`/admin/${nombre_modelo}`, {
+      post(`/admin/${nombre_ruta}`, {
         forceFormData: true,
-        onSuccess: () => { reset(); setEditando(false); setErroresFront({}); clearErrors(); },
+        onSuccess: () => { reset(); setEditando(false); setErrores({}); clearErrors(); },
       });
     }
   };
@@ -105,14 +95,14 @@ export default function Crud({ nombre_modelo, datos, columnas, campos, ObjetoEdi
   const modoEditar = (item) => {
     setEditando(true);
     setData({ ...item, _method: 'put', fotos_archivos: [] });
-    setErroresFront({});
+    setErrores({});
     clearErrors();
   };
 
   const cancelarEdicion = () => {
     reset();
     setEditando(false);
-    setErroresFront({});
+    setErrores({});
     clearErrors();
   };
 
@@ -130,7 +120,7 @@ export default function Crud({ nombre_modelo, datos, columnas, campos, ObjetoEdi
       cancelarEdicion();
     }
 
-    router.delete(`/admin/${nombre_modelo}/${idAEliminar}`, {
+    router.delete(`/admin/${nombre_ruta}/${idAEliminar}`, {
       onFinish: () => {
         setModalEliminarAbierto(false);
         setIdAEliminar(null);
@@ -144,7 +134,7 @@ export default function Crud({ nombre_modelo, datos, columnas, campos, ObjetoEdi
         <div className="mb-6 text-center">
           <p className="text-xs uppercase tracking-wide text-slate-400">Admin</p>
           <h1 className="text-2xl font-semibold text-slate-900">
-            {nombre_modelo.toUpperCase()}
+            {nombre_ruta.toUpperCase()}
           </h1>
         </div>
 
@@ -185,33 +175,33 @@ export default function Crud({ nombre_modelo, datos, columnas, campos, ObjetoEdi
                       </div>
                     ) : null}
                     <label
-                      htmlFor="fotos_archivos"
+                      htmlFor="foto"
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={(e) => {
                         e.preventDefault();
-                        const archivos = Array.from(e.dataTransfer.files || []);
-                        agregarArchivosFotos(archivos);
+                        const fotos = Array.from(e.dataTransfer.files || []);
+                        agregarFotos(fotos);
                       }}
                       className="block cursor-pointer rounded-2xl border border-dashed border-slate-300 px-4 py-3 text-sm text-slate-600"
                     >
                       Arrastra imágenes aquí o pulsa para seleccionarlas (puedes añadir más en varias veces)
                     </label>
                     <input
-                      id="fotos_archivos"
+                      id="foto"
                       type="file"
                       multiple
                       accept="image/*"
                       className="hidden"
                       onChange={(e) => {
-                        const archivos = Array.from(e.target.files || []);
-                        agregarArchivosFotos(archivos);
+                        const fotos = Array.from(e.target.files || []);
+                        agregarFotos(fotos);
                         e.target.value = '';
                       }}
                     />
                     {Array.isArray(datosFormulario.fotos_archivos) && datosFormulario.fotos_archivos.length > 0 ? (
                       <div className="space-y-1">
                         <p className="text-xs text-slate-500">
-                          {datosFormulario.fotos_archivos.length} archivo(s) listo(s) para subir
+                          {datosFormulario.fotos_archivos.length} foto(s) lista(s) para subir
                         </p>
                         <div className="flex flex-wrap gap-1">
                           {datosFormulario.fotos_archivos.map((archivo, index) => (
@@ -219,7 +209,7 @@ export default function Crud({ nombre_modelo, datos, columnas, campos, ObjetoEdi
                               {archivo.name}
                               <button
                                 type="button"
-                                onClick={() => quitarArchivoFoto(index)}
+                                onClick={() => quitarFotoNueva(index)}
                                 className="font-semibold text-slate-500 hover:text-red-500"
                                 aria-label={`Quitar ${archivo.name}`}
                               >
@@ -233,8 +223,8 @@ export default function Crud({ nombre_modelo, datos, columnas, campos, ObjetoEdi
                     {errors.fotos_archivos ? (
                       <p className="text-sm text-red-500">{errors.fotos_archivos}</p>
                     ) : null}
-                    {erroresFront.fotos && !errors.fotos && !errors.fotos_archivos ? (
-                      <p className="text-sm text-red-500">{erroresFront.fotos}</p>
+                    {errores.fotos && !errors.fotos && !errors.fotos_archivos ? (
+                      <p className="text-sm text-red-500">{errores.fotos}</p>
                     ) : null}
                     {errors.fotos ? (
                       <p className="text-sm text-red-500">{errors.fotos}</p>
@@ -263,11 +253,11 @@ export default function Crud({ nombre_modelo, datos, columnas, campos, ObjetoEdi
                     value={datosFormulario[camp.name] || ''}
                     max={camp.max}
                     onChange={actualizarCampo}
-                    error={erroresFront[camp.name] || errors[camp.name]}
+                    error={errores[camp.name] || errors[camp.name]}
                   />
                 )}
-                {(erroresFront[camp.name] || errors[camp.name]) && camp.type === 'select' ? (
-                  <p className="text-sm text-red-500">{erroresFront[camp.name] || errors[camp.name]}</p>
+                {(errores[camp.name] || errors[camp.name]) && camp.type === 'select' ? (
+                  <p className="text-sm text-red-500">{errores[camp.name] || errors[camp.name]}</p>
                 ) : null}
               </div>
             ))}

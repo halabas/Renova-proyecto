@@ -25,7 +25,8 @@ export default function Busqueda({
   colores = [],
   modelosCompatibles = [],
 }) {
-  const items = resultados.data || [];
+
+  const productos = resultados.data || [];
   const total = resultados.total || 0;
   const links = resultados.links || [];
   const ValorMaximo = max ?? 1500;
@@ -64,6 +65,7 @@ export default function Busqueda({
               />
             </BarraLateral>
 
+            {/*Si el tipo es modelo se renderizan los filtros asociados a modelos*/}
             {tipo === "modelo" && (
               <BarraLateral titulo="Marca">
                 <FiltroRadio
@@ -83,6 +85,8 @@ export default function Busqueda({
                 />
               </BarraLateral>
             )}
+
+            {/*Si el tipo es componente se renderizan los filtros asociados a componentes*/}
 
             {tipo === "componente" && (
               <BarraLateral titulo="Categoría">
@@ -104,6 +108,8 @@ export default function Busqueda({
               </BarraLateral>
             )}
 
+            {/*Si el tipo es modelo y hay colores disponibles se renderiza el filtro de colores.*/}
+
             {tipo === "modelo" && colores.length > 0 && (
               <BarraLateral titulo="Color">
                 <FiltroRadio
@@ -123,6 +129,8 @@ export default function Busqueda({
                 />
               </BarraLateral>
             )}
+
+            {/*Si el tipo es componente y hay modelos compatibles se renderiza el filtro de modelos compatibles.*/}
 
             {tipo === "componente" && modelosCompatibles.length > 0 && (
               <BarraLateral titulo="Modelo compatible">
@@ -205,26 +213,27 @@ export default function Busqueda({
               />
             </div>
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {items.length === 0 && (
+              {productos.length === 0 && (
                 <div className="rounded-2xl border border-slate-200 bg-white p-8 text-sm text-slate-500 sm:col-span-2 lg:col-span-3">
                   Sin resultados
                 </div>
               )}
+                            {/*Se renderizan las tarjetas de productos*/}
 
-              {items.map((item) => (
+              {productos.map((producto) => (
                 <Link
-                  key={`${item.tipo}-${item.id}`}
-                  href={item.tipo === "modelo" ? `/modelos/${item.id}` : `/componentes/${item.id}`}
+                  key={`${producto.tipo}-${producto.id}`}
+                  href={producto.tipo === "modelo" ? `/modelos/${producto.id}` : `/componentes/${producto.id}`}
                   className="w-full"
                 >
                   <TarjetaProducto
-                    tipo={item.tipo}
-                    nombre={item.nombre}
-                    precio={item.precio ?? 0}
-                    imagen={item.imagen || null}
-                    coloresDisponibles={item.coloresDisponibles || []}
-                    categoria={item.categoria}
-                    modeloCompatible={item.modeloCompatible}
+                    tipo={producto.tipo}
+                    nombre={producto.nombre}
+                    precio={producto.precio ?? 0}
+                    imagen={producto.imagen || null}
+                    coloresDisponibles={producto.coloresDisponibles || []}
+                    categoria={producto.categoria}
+                    modeloCompatible={producto.modeloCompatible}
                   />
                 </Link>
               ))}
@@ -232,10 +241,10 @@ export default function Busqueda({
           </div>
         </div>
 
+              {/*Paginación*/}
         {links.length > 0 && (
           <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
             {links.map((link, index) => (
-                // Paginacion
               <Link
                 key={`${link.label}-${index}`}
                 href={link.url || "#"}

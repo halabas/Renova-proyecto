@@ -18,19 +18,19 @@ class ComponenteController extends Controller
         $componentes = Componente::with('categoria', 'modelo.marca')->get();
 
         return Inertia::render('crud/crud', [
-            'nombre_modelo' => 'componentes',
-            'datos' => $componentes->map(fn($c) => [
-                'id' => $c->id,
-                'nombre' => $c->nombre,
-                'categoria_id' => $c->categoria->id,
-                'categoria' => $c->categoria->nombre,
-                'modelo_id' => $c->modelo->id,
-                'modelo' => $c->modelo->nombre,
-                'marca' => $c->modelo->marca->nombre,
-                'precio' => $c->precio,
-                'stock' => $c->stock,
-                'descripcion' => $c->descripcion,
-                'fotos' => $c->fotos,
+            'nombre_ruta' => 'componentes',
+            'datos' => $componentes->map(fn(Componente $componente) => [
+                'id' => $componente->id,
+                'nombre' => $componente->nombre,
+                'categoria_id' => $componente->categoria->id,
+                'categoria' => $componente->categoria->nombre,
+                'modelo_id' => $componente->modelo->id,
+                'modelo' => $componente->modelo->nombre,
+                'marca' => $componente->modelo->marca->nombre,
+                'precio' => $componente->precio,
+                'stock' => $componente->stock,
+                'descripcion' => $componente->descripcion,
+                'fotos' => $componente->fotos,
             ]),
             'columnas' => ['id','nombre','categoria','modelo','marca','precio','stock','descripcion','fotos'],
             'campos' => [
@@ -43,18 +43,18 @@ class ComponenteController extends Controller
                     'name' => 'categoria_id',
                     'label' => 'Categoría',
                     'type' => 'select',
-                    'options' => Categoria::all()->map(fn($cat) => [
-                        'value' => $cat->id,
-                        'label' => $cat->nombre
+                    'options' => Categoria::all()->map(fn($categoria) => [
+                        'value' => $categoria->id,
+                        'label' => $categoria->nombre
                     ]),
                 ],
                 [
                     'name' => 'modelo_id',
                     'label' => 'Modelo',
                     'type' => 'select',
-                    'options' => Modelo::all()->map(fn($mod) => [
-                        'value' => $mod->id,
-                        'label' => $mod->nombre . ' - ' . $mod->marca->nombre
+                    'options' => Modelo::all()->map(fn($modelo) => [
+                        'value' => $modelo->id,
+                        'label' => $modelo->nombre . ' - ' . $modelo->marca->nombre
                     ]),
                 ],
                 [
@@ -93,7 +93,7 @@ class ComponenteController extends Controller
         if ($duplicado) {
             if ($duplicado->precio != $request->precio) {
                 return back()->withErrors([
-                    'precio' => 'Ya existe un componente idéntico con otro precio. No se puede crear.'
+                    'precio' => 'Ya existe un componente igual con otro precio. No se puede crear.'
                 ])->withInput();
             }
 
@@ -101,7 +101,7 @@ class ComponenteController extends Controller
                 'stock' => $duplicado->stock + ($request->stock ?? 1)
             ]);
 
-            return back()->with('success', 'Componente ya existía, stock incrementado correctamente.');
+            return back()->with('success', 'Componente ya existía, stock incrementado.');
         }
 
         $datos['fotos'] = $this->prepararFotos($request);
@@ -201,7 +201,7 @@ class ComponenteController extends Controller
             'stock' => 'required|integer|min:0',
             'descripcion' => 'required|string|max:2000',
             'fotos' => 'nullable|string|max:5000|required_without:fotos_archivos',
-            'fotos_archivos' => 'nullable|array|max:12|required_without:fotos',
+            'fotos_archivos' => 'nullable|array|max:5|required_without:fotos',
             'fotos_archivos.*' => 'image|max:5120',
         ], [
             'nombre.required' => 'El nombre es obligatorio.',
@@ -225,19 +225,23 @@ class ComponenteController extends Controller
             'fotos.max' => 'El campo fotos no puede superar 5000 caracteres.',
             'fotos.required_without' => 'Debes añadir al menos una foto.',
             'fotos_archivos.array' => 'Las fotos deben enviarse en formato de lista.',
-            'fotos_archivos.max' => 'No puedes subir más de 12 fotos.',
+            'fotos_archivos.max' => 'No puedes subir más de 5 fotos.',
             'fotos_archivos.required_without' => 'Debes subir al menos una foto.',
             'fotos_archivos.*.image' => 'Cada archivo debe ser una imagen válida.',
             'fotos_archivos.*.max' => 'Cada imagen puede pesar como máximo 5MB.',
         ]);
     }
+    // Se encarga de combinar las urls de fotos que ya existian con las fotos nuevas.
 
     private function prepararFotos(Request $request): ?string
     {
+        // Se obtienen las urls que ya existian y se trimean.
+
         $urls = collect(explode(',', (string) $request->input('fotos')))
             ->map(fn ($url) => trim($url))
-            ->filter(fn ($url) => $url !== '')
-            ->filter(fn ($url) => str_starts_with($url, '/storage/') || filter_var($url, FILTER_VALIDATE_URL));
+            ->filter(fn ($url) => $url !== '');
+
+        // Se guardan las nuevas fotos en public y se obtienen las urls para añadirlas a las que ya existian
 
         foreach ((array) $request->file('fotos_archivos', []) as $archivo) {
             if (! $archivo) {
@@ -247,16 +251,21 @@ class ComponenteController extends Controller
             $urls->push(Storage::url($path));
         }
 
-        $texto = $urls->unique()->values()->implode(',');
+        // Se eliminan sanea y se vuelven a separar por comas.
 
-        return $texto !== '' ? $texto : null;
+        $urls_fotos = $urls->unique()->values()->implode(',');
+
+        return $urls_fotos !== '' ? $urls_fotos : null;
     }
+    //Comprueba que no exista otro componente con el mismo nombre para la misma categoría y modelo.
 
     private function comprobarDuplicado(array $datos, ?int $componente_edit_id = null): ?Componente
     {
         $query = Componente::where('nombre', $datos['nombre'])
             ->where('categoria_id', $datos['categoria_id'])
             ->where('modelo_id', $datos['modelo_id']);
+
+        // Si se está editando un componente, no se tiene en cuenta a la hora de comprobar si esta duplicado.
 
         if ($componente_edit_id) {
             $query->where('id', '<>', $componente_edit_id);
