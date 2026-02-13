@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('solicitudes_reparacion', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('tecnico_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('nombre_completo');
             $table->string('telefono', 20);
             $table->string('email');

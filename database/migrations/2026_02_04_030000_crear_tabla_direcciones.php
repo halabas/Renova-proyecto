@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('etiqueta', 50)->default('Casa');
             $table->string('nombre');
             $table->string('apellidos');
+            $table->string('dni', 9)->nullable();
             $table->string('telefono', 9);
             $table->string('direccion');
             $table->string('ciudad');
