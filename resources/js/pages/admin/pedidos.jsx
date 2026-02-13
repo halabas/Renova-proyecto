@@ -3,19 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { ChevronRight, Package } from 'lucide-react';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { Bar } from 'react-chartjs-2';
 
-export default function AdminPedidos({ pedidos, resumen, series, rango, anio, anios, filtros }) {
+export default function AdminPedidos({ pedidos, filtros }) {
   const [pedidosAbiertos, setPedidosAbiertos] = useState({});
 
   const formatoTotal = (total) => total.toFixed(2);
@@ -42,47 +31,12 @@ export default function AdminPedidos({ pedidos, resumen, series, rango, anio, an
     }
     return 'bg-amber-50 text-amber-700';
   };
-  const cambiarRango = (nuevoRango) => {
-    router.get(
-      '/admin/pedidos',
-      {
-        rango: nuevoRango,
-        anio,
-        estado: filtros?.estado || 'todos',
-        estado_envio: filtros?.estado_envio || 'todos',
-        usuario: filtros?.usuario || '',
-        fecha_desde: filtros?.fecha_desde || '',
-        fecha_hasta: filtros?.fecha_hasta || '',
-      },
-      { preserveState: true, preserveScroll: true }
-    );
-  };
-
-  const cambiarAnio = (e) => {
-    const valor = e.target.value || null;
-    router.get(
-      '/admin/pedidos',
-      {
-        rango,
-        anio: valor,
-        estado: filtros?.estado || 'todos',
-        estado_envio: filtros?.estado_envio || 'todos',
-        usuario: filtros?.usuario || '',
-        fecha_desde: filtros?.fecha_desde || '',
-        fecha_hasta: filtros?.fecha_hasta || '',
-      },
-      { preserveState: true, preserveScroll: true }
-    );
-  };
-
   const aplicarFiltros = (e) => {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     router.get(
       '/admin/pedidos',
       {
-        rango,
-        anio,
         estado: form.get('estado'),
         estado_envio: form.get('estado_envio'),
         usuario: form.get('usuario'),
@@ -91,49 +45,6 @@ export default function AdminPedidos({ pedidos, resumen, series, rango, anio, an
       },
       { preserveState: true, preserveScroll: true }
     );
-  };
-
-  ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    BarElement,
-    PointElement,
-    LineElement,
-    Tooltip,
-    Legend
-  );
-
-  const labels = (series || []).map((fila) => fila.fecha);
-  const data = {
-    labels,
-    datasets: [
-      {
-        label: 'Ventas',
-        data: (series || []).map((fila) => fila.total),
-        backgroundColor: 'rgba(151, 71, 255, 0.75)',
-        borderColor: '#9747ff',
-        borderWidth: 1,
-        borderRadius: 8,
-        maxBarThickness: 42,
-      },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          label: (context) => `${formatoTotal(context.parsed.y)} €`,
-        },
-      },
-    },
-    scales: {
-      x: { grid: { display: false } },
-      y: { ticks: { callback: (value) => `${value} €` } },
-    },
   };
 
   return (
@@ -145,80 +56,6 @@ export default function AdminPedidos({ pedidos, resumen, series, rango, anio, an
           <p className="text-sm text-slate-500">
             Historial completo de pedidos.
           </p>
-        </div>
-
-        <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                size="sm"
-                variant={rango === 'hoy' ? 'secondary' : 'outlineGray'}
-                onClick={() => cambiarRango('hoy')}
-              >
-                Hoy
-              </Button>
-              <Button
-                size="sm"
-                variant={rango === '7d' ? 'secondary' : 'outlineGray'}
-                onClick={() => cambiarRango('7d')}
-              >
-                7 días
-              </Button>
-              <Button
-                size="sm"
-                variant={rango === 'mes' ? 'secondary' : 'outlineGray'}
-                onClick={() => cambiarRango('mes')}
-              >
-                Mes
-              </Button>
-              <Button
-                size="sm"
-                variant={rango === 'anio' ? 'secondary' : 'outlineGray'}
-                onClick={() => cambiarRango('anio')}
-              >
-                Año
-              </Button>
-            </div>
-            <div>
-              <select
-                className="h-9 rounded-full border border-slate-200 bg-white px-3 text-sm text-slate-700"
-                value={anio || ''}
-                onChange={cambiarAnio}
-              >
-                <option value="">Año actual</option>
-                {anios?.map((valor) => (
-                  <option key={valor} value={valor}>
-                    {valor}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="mt-4 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-              <p className="text-xs uppercase text-slate-400">Ventas</p>
-              <p className="mt-1 text-2xl font-semibold text-slate-900">
-                {formatoTotal(resumen?.total_ventas || 0)} €
-              </p>
-            </div>
-            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-              <p className="text-xs uppercase text-slate-400">Pedidos</p>
-              <p className="mt-1 text-2xl font-semibold text-slate-900">
-                {resumen?.pedidos || 0}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-              <p className="text-xs uppercase text-slate-400">Ticket medio</p>
-              <p className="mt-1 text-2xl font-semibold text-slate-900">
-                {formatoTotal(resumen?.ticket_medio || 0)} €
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-6 h-60">
-            <Bar data={data} options={options} />
-          </div>
         </div>
 
         <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5">

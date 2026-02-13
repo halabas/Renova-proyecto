@@ -41,6 +41,7 @@ const adminSecciones = [
     titulo: "Gestion",
     enlaces: [
       { href: "/admin/pedidos", label: "Pedidos" },
+      { href: "/admin/contabilidad", label: "Contabilidad" },
       { href: "/admin/devoluciones", label: "Devoluciones" },
       { href: "/admin/solicitudes-reparacion", label: "Solicitudes" },
       { href: "/admin/usuarios", label: "Usuarios" },
