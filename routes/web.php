@@ -15,6 +15,7 @@ use App\Http\Controllers\DireccionController;
 use App\Http\Controllers\DevolucionController;
 use App\Http\Controllers\Admin\UsuarioController;
 use App\Http\Controllers\Admin\AdminPedidosController;
+use App\Http\Controllers\Admin\ContabilidadController;
 use App\Http\Controllers\PresupuestoController;
 use App\Http\Controllers\SolicitudReparacionController;
 use App\Http\Controllers\SoporteController;
@@ -64,6 +65,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     // RUTAS DE PEDIDOS
     Route::get('pedidos', [AdminPedidosController::class, 'index'])
         ->name('admin.pedidos.index');
+    Route::get('contabilidad', [ContabilidadController::class, 'index'])
+        ->name('admin.contabilidad.index');
     Route::get('pedidos/{pedido}/factura', [AdminPedidosController::class, 'factura'])
         ->name('admin.pedidos.factura');
     Route::post('pedidos/{pedido}/enviar', [AdminPedidosController::class, 'enviar'])
