@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\TicketMensajeSoporte;
 use App\Models\TicketSoporte;
 use App\Models\User;
+use App\Notifications\NotificacionClase;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -241,6 +242,14 @@ class SoporteController extends Controller
         $ticketSoporte->cerrado_at = $datos['estado'] === 'cerrado' ? now() : null;
         $ticketSoporte->save();
 
+        if ($ticketSoporte->usuario) {
+            $ticketSoporte->usuario->notify(new NotificacionClase(
+                'Estado de ticket actualizado',
+                'Tu ticket #'.$ticketSoporte->id.' ahora está en estado "'.$ticketSoporte->estado.'".',
+                '/ajustes/soporte?ticket='.$ticketSoporte->id
+            ));
+        }
+
         return back()->with('success', 'Estado actualizado.');
     }
 
@@ -270,6 +279,14 @@ class SoporteController extends Controller
             'user_id' => $user->id,
             'mensaje' => $datos['mensaje'],
         ]);
+
+        if ($ticketSoporte->usuario) {
+            $ticketSoporte->usuario->notify(new NotificacionClase(
+                'Nueva respuesta en soporte',
+                'Tienes una nueva respuesta en el ticket #'.$ticketSoporte->id.'.',
+                '/ajustes/soporte?ticket='.$ticketSoporte->id
+            ));
+        }
 
         return back()->with('success', 'Respuesta enviada.');
     }

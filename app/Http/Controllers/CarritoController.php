@@ -9,6 +9,7 @@ use App\Models\Modelo;
 use App\Models\Movil;
 use App\Models\Pedido;
 use App\Models\PedidoProducto;
+use App\Notifications\NotificacionClase;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -379,6 +380,12 @@ class CarritoController extends Controller
             }
 
             ProductoCarrito::where('user_id', $user->id)->delete();
+
+            $user->notify(new NotificacionClase(
+                'Pedido pagado',
+                'Tu pedido #'.$pedido->id.' se ha confirmado correctamente.',
+                '/ajustes/pedidos'
+            ));
         }
 
         return redirect()->route('pedidos.index')
@@ -406,6 +413,11 @@ class CarritoController extends Controller
 
             // Recorre los productos para sacar los datos de la variante especifica si es un movil.
         foreach ($filas as $producto) {
+            if (! $producto->producto) {
+                $producto->delete();
+                continue;
+            }
+
             $datos = [];
             if ($producto->producto_type === Movil::class) {
                 $datos = [
@@ -441,11 +453,15 @@ class CarritoController extends Controller
 
     private function nombreProducto($producto)
     {
+        if (! $producto->producto) {
+            return 'Producto';
+        }
 
         if ($producto->producto_type === Movil::class) {
-            $marca = $producto->producto->modelo->marca->nombre;
             $modelo = $producto->producto->modelo;
-            return trim($marca . ' ' . ($modelo->nombre));
+            $marca = $modelo?->marca?->nombre ?? '';
+            $nombreModelo = $modelo?->nombre ?? 'Movil';
+            return trim($marca . ' ' . $nombreModelo);
         }
 
         if ($producto->producto_type === Componente::class) {

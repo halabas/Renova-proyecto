@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\AdminPedidosController;
 use App\Http\Controllers\PresupuestoController;
 use App\Http\Controllers\SolicitudReparacionController;
 use App\Http\Controllers\SoporteController;
+use App\Http\Controllers\NotificacionesController;
 //RUTA HOME
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -34,6 +35,10 @@ Route::middleware('auth')->group(function () {
         ->name('reparaciones.solicitudes.store');
     Route::get('reparaciones/solicitudes/pago-revision/success', [SolicitudReparacionController::class, 'revisionPagada'])
         ->name('reparaciones.solicitudes.pago-revision.success');
+    Route::post('notificaciones/{id}/leer', [NotificacionesController::class, 'leer'])
+        ->name('notificaciones.leer');
+    Route::post('notificaciones/leer-todas', [NotificacionesController::class, 'leerTodas'])
+        ->name('notificaciones.leer-todas');
 });
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Devolucion;
+use App\Notifications\NotificacionClase;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Stripe\Refund;
@@ -44,6 +45,14 @@ class DevolucionController extends Controller
         $devolucion->estado = 'aprobada';
         $devolucion->save();
 
+        if ($devolucion->user) {
+            $devolucion->user->notify(new NotificacionClase(
+                'Devolución aprobada',
+                'Tu solicitud de devolución del pedido #'.$devolucion->pedido_id.' ha sido aprobada.',
+                '/ajustes/pedidos'
+            ));
+        }
+
         return back()->with('success', 'Devolución aprobada.');
     }
 
@@ -55,6 +64,14 @@ class DevolucionController extends Controller
 
         $devolucion->estado = 'rechazada';
         $devolucion->save();
+
+        if ($devolucion->user) {
+            $devolucion->user->notify(new NotificacionClase(
+                'Devolución rechazada',
+                'Tu solicitud de devolución del pedido #'.$devolucion->pedido_id.' ha sido rechazada.',
+                '/ajustes/pedidos'
+            ));
+        }
 
         return back()->with('success', 'Devolución rechazada.');
     }
@@ -92,6 +109,14 @@ class DevolucionController extends Controller
 
         $pedido->estado = 'cancelado';
         $pedido->save();
+
+        if ($devolucion->user) {
+            $devolucion->user->notify(new NotificacionClase(
+                'Reembolso completado',
+                'Se ha emitido el reembolso del pedido #'.$pedido->id.'.',
+                '/ajustes/pedidos'
+            ));
+        }
 
         return back()->with('success', 'Devolución reembolsada.');
     }

@@ -16,8 +16,8 @@ import {
 import { UserMenuContent } from "@/components/user-menu-content";
 import { useInitials } from "@/hooks/use-initials";
 import { cn, isSameUrl } from "@/lib/utils";
-import { Link, usePage } from "@inertiajs/react";
-import { ShieldCheck, ShoppingCart } from "lucide-react";
+import { Link, router, usePage } from "@inertiajs/react";
+import { Mail, ShieldCheck, ShoppingCart } from "lucide-react";
 import AppLogo from "./app-logo";
 import BarraBusqueda from "@/components/barra-busqueda";
 const mainNavItems = [
@@ -50,7 +50,7 @@ const adminSecciones = [
 ];
 function AppHeader({ breadcrumbs = [] }) {
   const page = usePage();
-  const { auth, carritoResumen } = page.props;
+  const { auth, carritoResumen, notificaciones } = page.props;
   const getInitials = useInitials();
   return <>
       <div className="border-b border-sidebar-border/80">
@@ -132,6 +132,59 @@ function AppHeader({ breadcrumbs = [] }) {
                 </Link>
               </DropdownMenuContent>
             </DropdownMenu>
+            {auth.user ? <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon" variant="outlineGray" className="group relative h-9 w-9 cursor-pointer">
+                    <Mail className="size-5 opacity-80 group-hover:opacity-100" />
+                    {notificaciones?.no_leidas > 0 ? <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-violet-600 px-1 text-[10px] font-semibold text-white">
+                        {notificaciones.no_leidas > 9 ? "9+" : notificaciones.no_leidas}
+                      </span> : null}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-96 p-3" align="end">
+                  <div className="mb-2 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">Notificaciones</p>
+                      <p className="text-xs text-slate-500">{notificaciones?.no_leidas || 0} sin leer</p>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outlineGray"
+                      onClick={() => router.post("/notificaciones/leer-todas")}
+                    >
+                      Marcar todas
+                    </Button>
+                  </div>
+                  {notificaciones?.items?.length ? <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
+                      {notificaciones.items.map((item) => <div
+    key={item.id}
+    className={`rounded-xl border p-2 ${item.leida ? "border-slate-200 bg-white" : "border-violet-200 bg-violet-50/40"}`}
+  >
+                          <p className="text-sm font-semibold text-slate-900">{item.titulo}</p>
+                          <p className="text-xs text-slate-600">{item.mensaje}</p>
+                          <div className="mt-2 flex items-center justify-between">
+                            <p className="text-[11px] text-slate-500">{item.fecha}</p>
+                            <div className="flex items-center gap-2">
+                              {item.url ? <Link href={item.url} className="text-xs font-semibold text-violet-600 hover:underline">
+                                  Ver
+                                </Link> : null}
+                              {!item.leida ? <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outlineGray"
+                                  onClick={() => router.post(`/notificaciones/${item.id}/leer`)}
+                                >
+                                  Leída
+                                </Button> : null}
+                            </div>
+                          </div>
+                        </div>)}
+                    </div> : <div className="rounded-xl border border-dashed border-slate-200 p-3 text-xs text-slate-500">
+                      No tienes notificaciones todavía.
+                    </div>}
+                </DropdownMenuContent>
+              </DropdownMenu> : null}
             {auth.user?.rol === "admin" ? <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button size="icon" variant="outlineGray" className="group h-9 w-9 cursor-pointer">

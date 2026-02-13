@@ -104,6 +104,37 @@ public function share(Request $request): array
             'success' => fn() => $request->session()->get('success'),
             'error' => fn() => $request->session()->get('error'),
         ],
+        'notificaciones' => function () use ($request) {
+            $user = $request->user();
+            if (! $user) {
+                return [
+                    'no_leidas' => 0,
+                    'items' => [],
+                ];
+            }
+
+            $items = $user->unreadNotifications()
+                ->latest()
+                ->limit(8)
+                ->get()
+                ->map(function ($notification) {
+                    $data = (array) $notification->data;
+                    return [
+                        'id' => $notification->id,
+                        'titulo' => $data['titulo'] ?? 'Notificación',
+                        'mensaje' => $data['mensaje'] ?? '',
+                        'url' => $data['url'] ?? null,
+                        'leida' => false,
+                        'fecha' => $notification->created_at?->format('d/m/Y H:i'),
+                    ];
+                })
+                ->values();
+
+            return [
+                'no_leidas' => (int) $user->unreadNotifications()->count(),
+                'items' => $items,
+            ];
+        },
     ];
 }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pedido;
+use App\Notifications\NotificacionClase;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -187,6 +188,14 @@ class AdminPedidosController extends Controller
         $pedido->estado_envio = 'enviado';
         $pedido->enviado_at = now();
         $pedido->save();
+
+        if ($pedido->user) {
+            $pedido->user->notify(new NotificacionClase(
+                'Tu pedido ha sido enviado',
+                'El pedido #'.$pedido->id.' ya está en camino.',
+                '/ajustes/pedidos'
+            ));
+        }
 
         return redirect()->route('admin.pedidos.index')
             ->with('success', 'Pedido marcado como enviado.');

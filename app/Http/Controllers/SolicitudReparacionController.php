@@ -7,6 +7,7 @@ use App\Models\SolicitudReparacion;
 use App\Models\TicketMensajeSoporte;
 use App\Models\TicketSoporte;
 use App\Models\User;
+use App\Notifications\NotificacionClase;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -158,6 +159,12 @@ class SolicitudReparacionController extends Controller
             'estado' => 'nueva',
         ]);
 
+        $user->notify(new NotificacionClase(
+            'Revisión pagada',
+            'Hemos recibido el pago de la revisión y tu solicitud de reparación ya está creada.',
+            '/ajustes/reparaciones'
+        ));
+
         $request->session()->forget('solicitud_reparacion_borrador');
 
         return redirect()->route('reparaciones.index')->with('success', 'Pago completado y solicitud creada correctamente.');
@@ -248,6 +255,14 @@ class SolicitudReparacionController extends Controller
         }
         $solicitudReparacion->save();
 
+        if ($solicitudReparacion->user) {
+            $solicitudReparacion->user->notify(new NotificacionClase(
+                'Reparación asignada',
+                'Tu solicitud #'.$solicitudReparacion->id.' ya tiene técnico asignado.',
+                '/ajustes/reparaciones'
+            ));
+        }
+
         return back()->with('success', 'Técnico actualizado.');
     }
 
@@ -269,6 +284,14 @@ class SolicitudReparacionController extends Controller
         $solicitudReparacion->tecnico_id = $user->id;
         $solicitudReparacion->estado = 'asignado';
         $solicitudReparacion->save();
+
+        if ($solicitudReparacion->user) {
+            $solicitudReparacion->user->notify(new NotificacionClase(
+                'Reparación asignada',
+                'Tu solicitud #'.$solicitudReparacion->id.' ya está siendo gestionada por un técnico.',
+                '/ajustes/reparaciones'
+            ));
+        }
 
         return back()->with('success', 'Solicitud aceptada.');
     }
@@ -294,6 +317,14 @@ class SolicitudReparacionController extends Controller
         $solicitudReparacion->estado = 'reparado';
         $solicitudReparacion->save();
 
+        if ($solicitudReparacion->user) {
+            $solicitudReparacion->user->notify(new NotificacionClase(
+                'Dispositivo reparado',
+                'Tu solicitud #'.$solicitudReparacion->id.' ya está reparada.',
+                '/ajustes/reparaciones'
+            ));
+        }
+
         return back()->with('success', 'Dispositivo marcado como reparado.');
     }
 
@@ -318,6 +349,14 @@ class SolicitudReparacionController extends Controller
         $solicitudReparacion->estado = 'devuelto';
         $solicitudReparacion->save();
 
+        if ($solicitudReparacion->user) {
+            $solicitudReparacion->user->notify(new NotificacionClase(
+                'Dispositivo devuelto',
+                'Tu solicitud #'.$solicitudReparacion->id.' ha sido marcada como devuelta.',
+                '/ajustes/reparaciones'
+            ));
+        }
+
         return back()->with('success', 'Dispositivo marcado como devuelto.');
     }
 
@@ -341,6 +380,14 @@ class SolicitudReparacionController extends Controller
 
         $solicitudReparacion->estado = 'enviado';
         $solicitudReparacion->save();
+
+        if ($solicitudReparacion->user) {
+            $solicitudReparacion->user->notify(new NotificacionClase(
+                'Reparación enviada',
+                'Tu dispositivo de la solicitud #'.$solicitudReparacion->id.' ha sido enviado.',
+                '/ajustes/reparaciones'
+            ));
+        }
 
         return back()->with('success', 'Dispositivo marcado como enviado.');
     }
@@ -509,6 +556,12 @@ class SolicitudReparacionController extends Controller
 
         $solicitudReparacion->estado = 'aceptada';
         $solicitudReparacion->save();
+
+        $user->notify(new NotificacionClase(
+            'Presupuesto aceptado',
+            'Tu solicitud #'.$solicitudReparacion->id.' ha quedado aceptada y pagada.',
+            '/ajustes/reparaciones'
+        ));
 
         $request->session()->forget('solicitud_reparacion_pago_presupuesto');
 
