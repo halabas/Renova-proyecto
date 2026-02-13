@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('nombre');
             $table->foreignId('marca_id')->constrained('marcas')->cascadeOnDelete();
             $table->decimal('precio_base', 10, 2);
+            $table->text('descripcion')->nullable();
+            $table->text('fotos')->nullable();
             $table->timestamps();
         });
 

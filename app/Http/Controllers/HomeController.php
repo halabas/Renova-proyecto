@@ -26,10 +26,21 @@ class HomeController extends Controller
                     'id' => $modelo->id,
                     'nombre' => trim($modelo->marca->nombre . ' ' . $modelo->nombre),
                     'precio' => $modelo->precio_base,
-                    'imagen' => null,
+                    'imagen' => $this->primeraFoto($modelo->fotos),
                     'coloresDisponibles' => $colores[$modelo->id] ?? [],
                 ];
             }),
         ]);
+    }
+
+    private function primeraFoto(?string $fotos): ?string
+    {
+        if (! $fotos) {
+            return null;
+        }
+
+        $primera = trim(explode(',', $fotos)[0] ?? '');
+
+        return $primera !== '' ? $primera : null;
     }
 }

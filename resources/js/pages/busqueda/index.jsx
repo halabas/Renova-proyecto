@@ -6,9 +6,6 @@ import BarraLateral from "@/components/barra-lateral";
 import { Link, router } from "@inertiajs/react";
 import { useState } from "react";
 
-const imagenprueba =
-  "https://assets.mmsrg.com/isr/166325/c1/-/ASSET_MP_142470444?x=536&y=402&format=jpg&quality=80&sp=yes&strip=yes&trim&ex=536&ey=402&align=center&resizesource&unsharp=1.5x1+0.7+0.02&cox=0&coy=0&cdx=536&cdy=402";
-
 export default function Busqueda({
   busqueda = "",
   resultados = [],
@@ -224,7 +221,7 @@ export default function Busqueda({
                     tipo={item.tipo}
                     nombre={item.nombre}
                     precio={item.precio ?? 0}
-                    imagen={item.imagen || imagenprueba}
+                    imagen={item.imagen || null}
                     coloresDisponibles={item.coloresDisponibles || []}
                     categoria={item.categoria}
                     modeloCompatible={item.modeloCompatible}

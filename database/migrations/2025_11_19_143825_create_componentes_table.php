@@ -18,6 +18,8 @@ return new class extends Migration
             $table->foreignId('modelo_id')->constrained('modelos')->cascadeOnDelete();
             $table->decimal('precio', 10, 2);
             $table->integer('stock')->default(1);
+            $table->text('descripcion')->nullable();
+            $table->text('fotos')->nullable();
             $table->unique(['nombre', 'categoria_id', 'modelo_id']);
             $table->timestamps();
         });

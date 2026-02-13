@@ -15,6 +15,38 @@ use Stripe\Stripe;
 
 class SolicitudReparacionController extends Controller
 {
+    public function index(Request $request)
+    {
+        $user = $request->user();
+        $direcciones = [];
+
+        if ($user) {
+            $direcciones = Direccion::where('user_id', $user->id)
+                ->orderByDesc('predeterminada')
+                ->orderBy('id')
+                ->get()
+                ->map(function ($direccion) {
+                    return [
+                        'id' => $direccion->id,
+                        'etiqueta' => $direccion->etiqueta,
+                        'nombre' => $direccion->nombre,
+                        'apellidos' => $direccion->apellidos,
+                        'telefono' => $direccion->telefono,
+                        'direccion' => $direccion->direccion,
+                        'ciudad' => $direccion->ciudad,
+                        'provincia' => $direccion->provincia,
+                        'codigo_postal' => $direccion->codigo_postal,
+                        'predeterminada' => $direccion->predeterminada,
+                    ];
+                })
+                ->values();
+        }
+
+        return Inertia::render('reparaciones/index', [
+            'direcciones' => $direcciones,
+        ]);
+    }
+
     public function store(Request $request)
     {
         $user = $request->user();

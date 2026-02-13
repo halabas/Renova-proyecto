@@ -381,7 +381,7 @@ class CarritoController extends Controller
             ProductoCarrito::where('user_id', $user->id)->delete();
         }
 
-        return redirect()->route('carrito.index')
+        return redirect()->route('pedidos.index')
             ->with('success', 'Pago realizado correctamente.');
     }
 

@@ -90,6 +90,9 @@ class DevolucionController extends Controller
         $devolucion->estado = 'reembolsada';
         $devolucion->save();
 
+        $pedido->estado = 'cancelado';
+        $pedido->save();
+
         return back()->with('success', 'Devolución reembolsada.');
     }
 }

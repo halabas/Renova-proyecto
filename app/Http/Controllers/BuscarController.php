@@ -33,7 +33,7 @@ class BuscarController extends Controller
                 null as categoria,
                 null as modelo_compatible,
                 modelos.precio_base::float as precio,
-                null as imagen
+                nullif(split_part(coalesce(modelos.fotos, ''), ',', 1), '') as imagen
             ");
 
         if ($busqueda !== '') {
@@ -70,7 +70,7 @@ class BuscarController extends Controller
                 categorias.nombre as categoria,
                 (marcas.nombre || ' ' || modelos.nombre) as modelo_compatible,
                 componentes.precio::float as precio,
-                null as imagen
+                nullif(split_part(coalesce(componentes.fotos, ''), ',', 1), '') as imagen
             ");
 
         if ($busqueda !== '') {

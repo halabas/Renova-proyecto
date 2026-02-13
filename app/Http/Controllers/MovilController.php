@@ -55,7 +55,7 @@ class MovilController extends Controller
                     'name' => 'almacenamiento',
                     'label' => 'Almacenamiento (GB)',
                     'type' => 'select',
-                    'options' => collect([32,64,128,256,512,1024,2048])
+                    'options' => collect([128,256,512,1024])
                         ->map(fn($a) => ['value' => $a, 'label' => $a])
                 ],
                 [
@@ -120,7 +120,7 @@ class MovilController extends Controller
             'modelo_id' => 'required|exists:modelos,id',
             'color' => 'required|string|max:50',
             'grado' => 'required|in:S,A+,A,B',
-            'almacenamiento' => 'required|integer|min:1',
+            'almacenamiento' => 'required|integer|in:128,256,512,1024',
             'stock' => 'required|integer|min:1',
         ], [
             'modelo_id.required' => 'Debes seleccionar un modelo.',
@@ -132,7 +132,7 @@ class MovilController extends Controller
             'grado.in' => 'El grado seleccionado no es válido.',
             'almacenamiento.required' => 'El almacenamiento es obligatorio.',
             'almacenamiento.integer' => 'El almacenamiento debe ser un número entero.',
-            'almacenamiento.min' => 'El almacenamiento debe ser al menos 1.',
+            'almacenamiento.in' => 'El almacenamiento solo puede ser 128, 256, 512 o 1024 GB.',
             'stock.required' => 'El stock es obligatorio.',
             'stock.integer' => 'El stock debe ser un número entero.',
             'stock.min' => 'El stock debe ser al menos 1.',

@@ -9,6 +9,7 @@ use Inertia\Inertia;
 use Illuminate\Validation\ValidationException;
 use App\Models\ProductoCarrito;
 use App\Models\Movil;
+use Illuminate\Support\Facades\Storage;
 
 class ModeloController extends Controller
 {
@@ -24,8 +25,10 @@ class ModeloController extends Controller
                 'marca_id' => $modelo->marca->id,
                 'marca' => $modelo->marca->nombre,
                 'precio_base' => $modelo->precio_base,
+                'descripcion' => $modelo->descripcion,
+                'fotos' => $modelo->fotos,
             ]),
-            'columnas' => ['id', 'nombre', 'marca', 'precio_base'],
+            'columnas' => ['id', 'nombre', 'marca', 'precio_base', 'descripcion', 'fotos'],
             'campos' => [
                 ['name' => 'nombre', 'label' => 'Nombre', 'type' => 'text'],
                 [
@@ -37,29 +40,43 @@ class ModeloController extends Controller
                         'label' => $marca->nombre
                     ])
                 ],
-                ['name' => 'precio_base', 'label' => 'Precio Base', 'type' => 'number']
+                ['name' => 'precio_base', 'label' => 'Precio Base', 'type' => 'number', 'max' => 99999999.99],
+                ['name' => 'descripcion', 'label' => 'Descripcion', 'type' => 'text'],
+                ['name' => 'fotos', 'label' => 'Fotos', 'type' => 'text'],
             ],
         ]);
     }
 
     public function store(Request $request)
     {
-        $this->validaciones($request);
+        $datos = $this->validaciones($request);
 
         $this->comprobarDuplicado($request->nombre, $request->marca_id);
 
-        Modelo::create($request->only('nombre', 'marca_id', 'precio_base'));
+        $datos['fotos'] = $this->prepararFotos($request);
+        if (! $datos['fotos']) {
+            return back()->withErrors([
+                'fotos' => 'Debes añadir al menos una foto del modelo.',
+            ])->withInput();
+        }
+        Modelo::create($datos);
 
         return redirect()->back()->with('success', 'Modelo creado correctamente.');
     }
 
     public function update(Request $request, Modelo $modelo)
     {
-        $this->validaciones($request);
+        $datos = $this->validaciones($request);
 
         $this->comprobarDuplicado($request->nombre, $request->marca_id, $modelo->id);
 
-        $modelo->update($request->only('nombre', 'marca_id', 'precio_base'));
+        $datos['fotos'] = $this->prepararFotos($request);
+        if (! $datos['fotos']) {
+            return back()->withErrors([
+                'fotos' => 'Debes mantener al menos una foto del modelo.',
+            ])->withInput();
+        }
+        $modelo->update($datos);
 
         return redirect()->back()->with('success', 'Modelo actualizado correctamente.');
     }
@@ -67,23 +84,6 @@ class ModeloController extends Controller
     public function show(Modelo $modelo)
     {
         $modelo->load(['marca', 'moviles']);
-
-        $coloresDisponibles = $modelo->moviles
-            ->pluck('color')
-            ->unique()
-            ->values()
-            ->all();
-        $gradosDisponibles = $modelo->moviles
-            ->pluck('grado')
-            ->unique()
-            ->values()
-            ->all();
-        $almacenamientosDisponibles = $modelo->moviles
-            ->pluck('almacenamiento')
-            ->unique()
-            ->values()
-            ->all();
-            // Crear un array asociativo con la combinaciones posibles y  su stock.
         $stockPorVariante = [];
         foreach ($modelo->moviles as $movil) {
             $clave = $movil->color . '|' . $movil->grado . '|' . $movil->almacenamiento;
@@ -110,13 +110,45 @@ class ModeloController extends Controller
             }
         }
 
+        $clavesConStock = collect($stockPorVariante)
+            ->filter(fn ($stock) => $stock > 0)
+            ->keys()
+            ->values();
+
+        $coloresDisponibles = $clavesConStock
+            ->map(fn ($clave) => explode('|', $clave)[0])
+            ->unique()
+            ->values()
+            ->all();
+
+        $gradosDisponibles = $clavesConStock
+            ->map(fn ($clave) => explode('|', $clave)[1])
+            ->unique()
+            ->values()
+            ->all();
+
+        $almacenamientosDisponibles = $clavesConStock
+            ->map(fn ($clave) => (int) explode('|', $clave)[2])
+            ->unique()
+            ->values()
+            ->all();
+
+        $fotos = collect(explode(',', (string) $modelo->fotos))
+            ->map(fn ($url) => trim($url))
+            ->filter(fn ($url) => $url !== '')
+            ->values()
+            ->all();
+
         return Inertia::render('producto', [
             'tipo' => 'modelo',
             'modelo' => [
                 'id' => $modelo->id,
                 'nombre' => $modelo->nombre,
                 'marca' => $modelo->marca->nombre,
+                'eslogan' => $modelo->marca->eslogan,
                 'precio_base' => $modelo->precio_base,
+                'descripcion' => $modelo->descripcion,
+                'fotos' => $fotos,
             ],
             'coloresDisponibles' => $coloresDisponibles,
             'gradosDisponibles' => $gradosDisponibles,
@@ -131,19 +163,55 @@ class ModeloController extends Controller
         return redirect()->back()->with('success', 'Modelo eliminado correctamente.');
     }
 
-    private function validaciones(Request $request)
+    private function validaciones(Request $request): array
     {
-        $request->validate([
+        return $request->validate([
             'nombre' => 'required|string|max:255',
             'marca_id' => 'required|exists:marcas,id',
-            'precio_base' => 'required|numeric|min:0',
+            'precio_base' => 'required|numeric|min:0|max:99999999.99',
+            'descripcion' => 'required|string|max:2000',
+            'fotos' => 'nullable|string|max:5000|required_without:fotos_archivos',
+            'fotos_archivos' => 'nullable|array|max:12|required_without:fotos',
+            'fotos_archivos.*' => 'image|max:5120',
         ], [
             'nombre.required' => 'El nombre es obligatorio.',
             'marca_id.required' => 'Debes seleccionar una marca.',
             'marca_id.exists' => 'La marca seleccionada no es válida.',
             'precio_base.required' => 'El precio base es obligatorio.',
             'precio_base.numeric' => 'El precio debe ser un número válido.',
+            'precio_base.max' => 'El precio base no puede superar 99.999.999,99.',
+            'descripcion.required' => 'La descripción es obligatoria.',
+            'descripcion.string' => 'La descripción debe ser un texto válido.',
+            'descripcion.max' => 'La descripción no puede superar 2000 caracteres.',
+            'fotos.string' => 'El campo fotos debe ser un texto válido.',
+            'fotos.max' => 'El campo fotos no puede superar 5000 caracteres.',
+            'fotos.required_without' => 'Debes añadir al menos una foto.',
+            'fotos_archivos.array' => 'Las fotos deben enviarse en formato de lista.',
+            'fotos_archivos.max' => 'No puedes subir más de 12 fotos.',
+            'fotos_archivos.required_without' => 'Debes subir al menos una foto.',
+            'fotos_archivos.*.image' => 'Cada archivo debe ser una imagen válida.',
+            'fotos_archivos.*.max' => 'Cada imagen puede pesar como máximo 5MB.',
         ]);
+    }
+
+    private function prepararFotos(Request $request): ?string
+    {
+        $urls = collect(explode(',', (string) $request->input('fotos')))
+            ->map(fn ($url) => trim($url))
+            ->filter(fn ($url) => $url !== '')
+            ->filter(fn ($url) => str_starts_with($url, '/storage/') || filter_var($url, FILTER_VALIDATE_URL));
+
+        foreach ((array) $request->file('fotos_archivos', []) as $archivo) {
+            if (! $archivo) {
+                continue;
+            }
+            $path = $archivo->store('productos/modelos', 'public');
+            $urls->push(Storage::url($path));
+        }
+
+        $texto = $urls->unique()->values()->implode(',');
+
+        return $texto !== '' ? $texto : null;
     }
 
     private function comprobarDuplicado(string $nombre, int $marca_id, ?int $modelo_edit_id = null)

@@ -32,12 +32,18 @@ export default function TarjetaProducto({
       <CardHeader className="relative p-0">
         <div className="relative">
           <div className="aspect-4/3 w-full overflow-hidden">
-            <img
-              src={imagen}
-              alt={nombre}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-              loading="lazy"
-            />
+            {imagen ? (
+              <img
+                src={imagen}
+                alt={nombre}
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                loading="lazy"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-slate-100 text-sm text-slate-400">
+                Sin foto
+              </div>
+            )}
           </div>
 
           <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-black/0 via-black/10 to-black/45" />

@@ -74,10 +74,7 @@ export default function Welcome({ modelos = [] }) {
                     tipo="modelo"
                     nombre={producto.nombre}
                     precio={producto.precio}
-                    imagen={
-                      producto.imagen ||
-                      "https://i.blogs.es/3339e4/img_1199/1366_2000.jpg"
-                    }
+                    imagen={producto.imagen || null}
                     coloresDisponibles={producto.coloresDisponibles || []}
                   />
                 </Link>

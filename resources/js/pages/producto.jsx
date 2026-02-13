@@ -3,6 +3,8 @@ import AppLayout from "@/layouts/renova-layout";
 import { Button } from "@/components/ui/button";
 import BarraLateral from "@/components/barra-lateral";
 import { router } from "@inertiajs/react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { CircleAlert, Sparkles, Medal, Star, ShieldCheck } from "lucide-react";
 
 const colores = {
   Negro: "bg-black",
@@ -24,6 +26,37 @@ const Etiquetas = {
   rosa: "bg-pink-500",
 };
 
+const gradosInfo = [
+  {
+    titulo: "Como nuevo - S+",
+    descripcion: "Estado impecable, sin marcas visibles de uso.",
+    icono: Sparkles,
+    colorIcono: "from-fuchsia-500 to-violet-500",
+    puntos: ["Sin arañazos en pantalla o carcasa", "Batería con salud del 100%", "Funcionalidad perfecta al 100%"],
+  },
+  {
+    titulo: "Excelente - A+",
+    descripcion: "Estado excelente con mínimas señales de uso.",
+    icono: Medal,
+    colorIcono: "from-blue-500 to-cyan-500",
+    puntos: ["Arañazos mínimos imperceptibles", "Batería con salud superior al 90%", "Funcionalidad perfecta al 100%"],
+  },
+  {
+    titulo: "Muy bueno - A",
+    descripcion: "Muy buen estado, leves marcas de uso.",
+    icono: Star,
+    colorIcono: "from-emerald-500 to-teal-500",
+    puntos: ["Arañazos ligeros en carcasa", "Batería con salud superior al 85%", "Funcionalidad al 100%"],
+  },
+  {
+    titulo: "Bueno - B",
+    descripcion: "Funcional y revisado, con señales evidentes de uso.",
+    icono: ShieldCheck,
+    colorIcono: "from-orange-500 to-amber-500",
+    puntos: ["Arañazos y marcas visibles", "Batería con salud superior al 80%", "Funcionalidad al 100%"],
+  },
+];
+
 export default function Producto({
   tipo = "modelo",
   modelo,
@@ -33,18 +66,12 @@ export default function Producto({
   almacenamientosDisponibles = [],
   stockPorVariante = {},
 }) {
-  const imagenes = [
-    "https://i.blogs.es/3339e4/img_1199/1366_2000.jpg",
-    "https://m.media-amazon.com/images/I/71rjXl9tmJL._AC_UF1000,1000_QL80_.jpg",
-    "https://m.media-amazon.com/images/I/71rjXl9tmJL._AC_UF1000,1000_QL80_.jpg",
-    "https://m.media-amazon.com/images/I/71rjXl9tmJL._AC_UF1000,1000_QL80_.jpg",
-  ];
-
   if (tipo === "componente") {
     const nombre = componente.nombre;
     const subtitulo = componente.subtitulo;
     const precio = Math.round(componente.precio);
-    const imagen = componente.imagen || imagenes[0];
+    const imagenesComponente = componente.fotos || [];
+    const imagen = imagenesComponente[0] || null;
     const stockDisponible = componente.stock_disponible;
 
     return (
@@ -54,11 +81,17 @@ export default function Producto({
             <div>
               <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
                 <div className="h-[420px] w-full">
-                  <img
-                    src={imagen}
-                    alt={nombre}
-                    className="h-full w-full object-contain"
-                  />
+                  {imagen ? (
+                    <img
+                      src={imagen}
+                      alt={nombre}
+                      className="h-full w-full object-contain"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-sm text-slate-400">
+                      Sin foto
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -76,7 +109,9 @@ export default function Producto({
                 </div>
               </BarraLateral>
 
-              <BarraLateral titulo="">Descripción</BarraLateral>
+              <BarraLateral titulo="">
+                <p className="text-sm text-slate-600">{componente.descripcion || 'Sin descripción'}</p>
+              </BarraLateral>
 
               <div className="space-y-2">
                 <p className="text-sm text-slate-500">
@@ -108,10 +143,14 @@ export default function Producto({
   const [gradoActivo, setGradoActivo] = useState(gradosDisponibles[0] || "");
   const [capacidadActiva, setCapacidadActiva] = useState(almacenamientosDisponibles[0] || "");
   const [cantidad, setCantidad] = useState(1);
+  const [modalGradosAbierto, setModalGradosAbierto] = useState(false);
+  const imagenesModelo = modelo.fotos || [];
+  const [imagenModeloActiva, setImagenModeloActiva] = useState(imagenesModelo[0] || null);
 
 
   const claveVariante = `${colorActivo}|${gradoActivo}|${capacidadActiva}`;
   const stockDisponible = stockPorVariante[claveVariante] ?? 0;
+  const hayVariantesConStock = Object.values(stockPorVariante).some((stock) => stock > 0);
 
   const descuentosGrado = {
     S: 0.05,
@@ -137,30 +176,39 @@ export default function Producto({
     <AppLayout>
       <div className="mx-auto w-full max-w-6xl px-6 py-8">
         <div className="mt-6 grid gap-10 lg:grid-cols-2">
-          <div>
-            <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
-              <div className="h-[420px] w-full">
-                <img
-                  src={imagenes[0]}
-                  alt={`${modelo.marca} ${modelo.nombre}`}
-                  className="h-full w-full object-contain"
-                />
+            <div>
+              <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
+                <div className="h-[420px] w-full">
+                  {imagenesModelo[0] ? (
+                    <img
+                      src={imagenModeloActiva || imagenesModelo[0]}
+                      alt={`${modelo.marca} ${modelo.nombre}`}
+                      className="h-full w-full object-contain"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-sm text-slate-400">
+                      Sin foto
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div className="mt-4 grid grid-cols-4 gap-3">
-              {imagenes.map((src, index) => (
-                <button
-                  key={src}
-                  type="button"
-                  className={`overflow-hidden rounded-2xl border ${
-                    index === 0 ? "border-violet-500" : "border-slate-200"
-                  } bg-white shadow-sm`}
-                >
-                  <img src={src} alt="" className="h-20 w-full object-cover" />
-                </button>
-              ))}
-            </div>
+            {imagenesModelo.length > 1 ? (
+              <div className="mt-4 grid grid-cols-4 gap-3">
+                {imagenesModelo.map((src, index) => (
+                  <button
+                    key={src + index}
+                    type="button"
+                    onClick={() => setImagenModeloActiva(src)}
+                    className={`overflow-hidden rounded-2xl border ${
+                      (imagenModeloActiva || imagenesModelo[0]) === src ? "border-violet-500" : "border-slate-200"
+                    } bg-white shadow-sm`}
+                  >
+                    <img src={src} alt="" className="h-20 w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div className="space-y-4">
@@ -168,12 +216,9 @@ export default function Producto({
               <h1 className="text-3xl font-semibold text-slate-900">
                 {modelo.marca} {modelo.nombre}
               </h1>
-              <p className="text-base text-slate-500">eslogan</p>
-              <div className="mt-2 flex items-center gap-2 text-base text-slate-500">
-                <span className="text-yellow-400">★★★★★</span>
-                <span>4.9</span>
-                <span>(132 valoraciones)</span>
-              </div>
+              {modelo.eslogan ? (
+                <p className="text-base text-slate-500">{modelo.eslogan}</p>
+              ) : null}
             </div>
 
             <BarraLateral titulo="">
@@ -191,7 +236,7 @@ export default function Producto({
             </BarraLateral>
 
             <BarraLateral titulo="">
-              Descripción
+              {modelo.descripcion || 'Sin descripción'}
             </BarraLateral>
 
             <BarraLateral titulo="">
@@ -199,7 +244,14 @@ export default function Producto({
                 <span className="text-slate-900">
                   Estado: <span className="text-violet-600">Excelente</span>
                 </span>
-                <span className="text-violet-600">¿Qué significa?</span>
+                <button
+                  type="button"
+                  onClick={() => setModalGradosAbierto(true)}
+                  className="inline-flex items-center gap-1 text-violet-600 hover:underline"
+                >
+                  <CircleAlert className="h-4 w-4" />
+                  ¿Qué significa?
+                </button>
               </div>
               <div className="mt-6 grid gap-6 sm:grid-cols-2">
                 {[
@@ -268,7 +320,6 @@ export default function Producto({
                     } cursor-pointer`}
                   >
                     <div className="text-base font-semibold text-slate-900">{cap} GB</div>
-                    <div className="text-sm text-slate-500">849€</div>
                   </button>
                 ))}
               </div>
@@ -296,11 +347,23 @@ export default function Producto({
               <div className="mt-2 text-xs text-slate-400">
                 Stock disponible: {stockDisponible}
               </div>
+              {!hayVariantesConStock ? (
+                <div className="mt-2 text-xs font-semibold text-red-500">
+                  Sin stock en este modelo.
+                </div>
+              ) : null}
             </BarraLateral>
 
             <Button
               variant="default"
               className="h-12 w-full rounded-full text-base"
+              disabled={
+                !hayVariantesConStock
+                || !colorActivo
+                || !gradoActivo
+                || !capacidadActiva
+                || stockDisponible <= 0
+              }
               onClick={() =>
                 router.post("/carrito/productos", {
                   tipo: "movil",
@@ -319,6 +382,43 @@ export default function Producto({
           </div>
         </div>
       </div>
+
+      <Dialog open={modalGradosAbierto} onOpenChange={setModalGradosAbierto}>
+        <DialogContent className="w-[95vw] max-w-6xl rounded-2xl border-slate-200 p-6 sm:max-w-6xl">
+          <DialogHeader>
+            <DialogTitle className="text-4xl">Grados de móviles renovados</DialogTitle>
+            <DialogDescription>
+              Conoce el estado estético de cada dispositivo reacondicionado.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 md:grid-cols-2">
+            {gradosInfo.map((grado) => {
+              const Icono = grado.icono;
+              return (
+                <div key={grado.titulo} className="rounded-2xl border border-slate-200 p-5">
+                  <div className="mb-3 flex items-start gap-3">
+                    <div className={`rounded-xl bg-gradient-to-r ${grado.colorIcono} p-3 text-white`}>
+                      <Icono className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-semibold text-slate-900">{grado.titulo}</h4>
+                      <p className="text-sm text-slate-600">{grado.descripcion}</p>
+                    </div>
+                  </div>
+                  <ul className="space-y-1 text-sm text-slate-700">
+                    {grado.puntos.map((punto) => (
+                      <li key={punto}>- {punto}</li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-4 rounded-2xl bg-violet-50 px-4 py-3 text-sm text-violet-800">
+            Garantia incluida: 12 meses de garantia y 14 dias de devolucion.
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }

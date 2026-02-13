@@ -8,7 +8,6 @@ use App\Http\Controllers\ModeloController;
 use App\Http\Controllers\MovilController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ComponenteController;
-use App\Http\Controllers\ReparacionController;
 use App\Http\Controllers\BuscarController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CarritoController;
@@ -27,7 +26,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 Route::get('modelos/{modelo}', [ModeloController::class, 'show'])->name('modelos.show');
 Route::get('componentes/{componente}', [ComponenteController::class, 'show'])->name('componentes.show');
-Route::get('reparaciones', [ReparacionController::class, 'index'])->name('reparaciones.index');
+Route::get('reparaciones', [SolicitudReparacionController::class, 'index'])->name('reparaciones.index');
 Route::middleware('auth')->group(function () {
     Route::post('reparaciones/solicitudes', [SolicitudReparacionController::class, 'store'])
         ->name('reparaciones.solicitudes.store');
@@ -45,12 +44,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
         ->except(['create', 'edit', 'show']);
     Route::resource('componentes', ComponenteController::class)
         ->except(['create','edit','show']);
-    Route::resource('reparaciones', ReparacionController::class)
-        ->except(['create', 'edit', 'show','index'])
-        ->parameters(['reparaciones' => 'reparacion']);
-
-    Route::get('reparaciones', [ReparacionController::class, 'admin'])
-        ->name('reparaciones.admin');
     Route::get('usuarios', [UsuarioController::class, 'index'])
         ->name('usuarios.index');
     Route::delete('usuarios/{user}', [UsuarioController::class, 'destroy'])

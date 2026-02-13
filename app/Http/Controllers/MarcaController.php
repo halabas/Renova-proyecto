@@ -16,9 +16,10 @@ class MarcaController extends Controller
         return Inertia::render('crud/crud', [
             'nombre_modelo' => 'marcas',
             'datos' => $marcas,
-            'columnas' => ['id', 'nombre'],
+            'columnas' => ['id', 'nombre', 'eslogan'],
             'campos' => [
                 ['name' => 'nombre', 'label' => 'Nombre', 'type' => 'text'],
+                ['name' => 'eslogan', 'label' => 'Eslogan', 'type' => 'text', 'required' => false],
             ],
         ]);
     }
@@ -29,16 +30,19 @@ class MarcaController extends Controller
         $request->validate(
             [
                 'nombre' => 'required|string|max:255|unique:marcas,nombre',
+                'eslogan' => 'nullable|string|max:255',
             ],
             [
                 'nombre.required' => 'El nombre de la marca es obligatorio.',
                 'nombre.string' => 'El nombre debe ser un texto válido.',
                 'nombre.max' => 'El nombre no puede tener más de 255 caracteres.',
                 'nombre.unique' => 'Ya existe una marca con ese nombre.',
+                'eslogan.string' => 'El eslogan debe ser un texto válido.',
+                'eslogan.max' => 'El eslogan no puede tener más de 255 caracteres.',
             ]
         );
 
-        Marca::create($request->only('nombre'));
+        Marca::create($request->only('nombre', 'eslogan'));
 
         return redirect()->back()->with('success', 'Marca creada correctamente.');
     }
@@ -48,16 +52,19 @@ class MarcaController extends Controller
         $request->validate(
             [
                 'nombre' => 'required|string|max:255|unique:marcas,nombre,' . $marca->id,
+                'eslogan' => 'nullable|string|max:255',
             ],
             [
                 'nombre.required' => 'El nombre de la marca es obligatorio.',
                 'nombre.string' => 'El nombre debe ser un texto válido.',
                 'nombre.max' => 'El nombre no puede tener más de 255 caracteres.',
                 'nombre.unique' => 'Ya existe una marca con ese nombre.',
+                'eslogan.string' => 'El eslogan debe ser un texto válido.',
+                'eslogan.max' => 'El eslogan no puede tener más de 255 caracteres.',
             ]
         );
 
-        $marca->update($request->only('nombre'));
+        $marca->update($request->only('nombre', 'eslogan'));
 
         return redirect()->back()->with('success', 'Marca actualizada correctamente.');
     }

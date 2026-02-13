@@ -7,12 +7,13 @@ import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
+  BarElement,
   PointElement,
   LineElement,
   Tooltip,
   Legend,
 } from 'chart.js';
-import { Line } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 
 export default function AdminPedidos({ pedidos, resumen, series, rango, anio, anios, filtros }) {
   const [pedidosAbiertos, setPedidosAbiertos] = useState({});
@@ -95,6 +96,7 @@ export default function AdminPedidos({ pedidos, resumen, series, rango, anio, an
   ChartJS.register(
     CategoryScale,
     LinearScale,
+    BarElement,
     PointElement,
     LineElement,
     Tooltip,
@@ -108,10 +110,11 @@ export default function AdminPedidos({ pedidos, resumen, series, rango, anio, an
       {
         label: 'Ventas',
         data: (series || []).map((fila) => fila.total),
+        backgroundColor: 'rgba(151, 71, 255, 0.75)',
         borderColor: '#9747ff',
-        backgroundColor: 'rgba(151, 71, 255, 0.2)',
-        tension: 0.3,
-        pointRadius: 0,
+        borderWidth: 1,
+        borderRadius: 8,
+        maxBarThickness: 42,
       },
     ],
   };
@@ -214,7 +217,7 @@ export default function AdminPedidos({ pedidos, resumen, series, rango, anio, an
           </div>
 
           <div className="mt-6 h-60">
-            <Line data={data} options={options} />
+            <Bar data={data} options={options} />
           </div>
         </div>
 

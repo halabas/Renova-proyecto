@@ -237,6 +237,8 @@ class PedidosController extends Controller
             Refund::create([
                 'payment_intent' => $paymentIntentId,
             ]);
+
+            $this->restaurarStockPedido($pedido);
         }
 
         $pedido->estado = 'cancelado';
@@ -326,5 +328,20 @@ class PedidosController extends Controller
 
         return redirect('/ajustes/soporte?ticket='.$ticket->id)
             ->with('success', 'Ticket de ayuda listo.');
+    }
+
+    private function restaurarStockPedido(Pedido $pedido): void
+    {
+        $pedido->loadMissing('productos.producto');
+
+        foreach ($pedido->productos as $productoPedido) {
+            $producto = $productoPedido->producto;
+            if (! $producto || ! isset($producto->stock)) {
+                continue;
+            }
+
+            $producto->stock = ((int) $producto->stock) + ((int) $productoPedido->cantidad);
+            $producto->save();
+        }
     }
 }

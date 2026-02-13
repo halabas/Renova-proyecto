@@ -46,7 +46,6 @@ const adminSecciones = [
     enlaces: [
       { href: '/admin/pedidos', label: 'Pedidos' },
       { href: '/admin/devoluciones', label: 'Devoluciones' },
-      { href: '/admin/reparaciones', label: 'Reparaciones' },
       { href: '/admin/solicitudes-reparacion', label: 'Solicitudes' },
       { href: '/admin/usuarios', label: 'Usuarios' },
       { href: '/admin/soporte', label: 'Soporte' },

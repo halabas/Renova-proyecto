@@ -2,9 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { router } from "@inertiajs/react";
 import { Search, X } from "lucide-react";
 
-const imagenprueba =
-  "https://assets.mmsrg.com/isr/166325/c1/-/ASSET_MP_142470444?x=536&y=402&format=jpg&quality=80&sp=yes&strip=yes&trim&ex=536&ey=402&align=center&resizesource&unsharp=1.5x1+0.7+0.02&cox=0&coy=0&cdx=536&cdy=402";
-
 export default function BarraBusqueda() {
   const [consulta, setConsulta] = useState("");
   const [abrir, setAbrir] = useState(false);
@@ -137,11 +134,17 @@ export default function BarraBusqueda() {
                   onClick={handleSubmit}
                   className="flex w-full items-center gap-4 border-b border-gray-100 px-4 py-3 text-left hover:bg-gray-50"
                 >
-                  <img
-                    src={producto.imagen || imagenprueba}
-                    alt={producto.nombre}
-                    className="h-12 w-12 rounded-lg object-cover"
-                  />
+                  {producto.imagen ? (
+                    <img
+                      src={producto.imagen}
+                      alt={producto.nombre}
+                      className="h-12 w-12 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 text-xs text-slate-400">
+                      Sin foto
+                    </div>
+                  )}
                   <div className="flex-1">
                     <div className="text-sm font-semibold text-gray-900">
                       {producto.nombre}

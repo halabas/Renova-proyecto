@@ -10,12 +10,43 @@ import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/react';
+import { useState } from 'react';
 
 export default function Login({
     status,
     canResetPassword,
     canRegister,
 }) {
+    const [erroresFront, setErroresFront] = useState({});
+
+    const validarFrontend = (event) => {
+        const formulario = event.currentTarget;
+        const datos = new FormData(formulario);
+        const email = String(datos.get('email') || '').trim();
+        const password = String(datos.get('password') || '');
+        const nuevosErrores = {};
+
+        if (!email) {
+            nuevosErrores.email = 'El correo electrónico es obligatorio.';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            nuevosErrores.email = 'Introduce un correo electrónico válido.';
+        }
+
+        if (!password) {
+            nuevosErrores.password = 'La contraseña es obligatoria.';
+        } else if (password.length < 8) {
+            nuevosErrores.password = 'La contraseña debe tener al menos 8 caracteres.';
+        }
+
+        if (Object.keys(nuevosErrores).length > 0) {
+            event.preventDefault();
+            setErroresFront(nuevosErrores);
+            return;
+        }
+
+        setErroresFront({});
+    };
+
     return (
         <AuthLayout
             title="Inicia sesión"
@@ -27,6 +58,7 @@ export default function Login({
                 {...store.form()}
                 resetOnSuccess={['password']}
                 className="flex flex-col gap-6"
+                onSubmit={validarFrontend}
             >
                 {({ processing, errors }) => (
                     <>
@@ -38,12 +70,16 @@ export default function Login({
                                     type="email"
                                     name="email"
                                     required
+                                    minLength={5}
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="email"
                                     placeholder="correo@ejemplo.com"
+                                    onInput={() =>
+                                        setErroresFront((prev) => ({ ...prev, email: null }))
+                                    }
                                 />
-                                <InputError message={errors.email} />
+                                <InputError message={erroresFront.email || errors.email} />
                             </div>
 
                             <div className="grid gap-2">
@@ -64,11 +100,15 @@ export default function Login({
                                     type="password"
                                     name="password"
                                     required
+                                    minLength={8}
                                     tabIndex={2}
                                     autoComplete="current-password"
                                     placeholder="Tu contraseña"
+                                    onInput={() =>
+                                        setErroresFront((prev) => ({ ...prev, password: null }))
+                                    }
                                 />
-                                <InputError message={errors.password} />
+                                <InputError message={erroresFront.password || errors.password} />
                             </div>
 
                             <div className="flex items-center space-x-3">

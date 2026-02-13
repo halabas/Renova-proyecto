@@ -9,6 +9,7 @@ use App\Models\Modelo;
 use Inertia\Inertia;
 use Illuminate\Validation\ValidationException;
 use App\Models\ProductoCarrito;
+use Illuminate\Support\Facades\Storage;
 
 class ComponenteController extends Controller
 {
@@ -28,8 +29,10 @@ class ComponenteController extends Controller
                 'marca' => $c->modelo->marca->nombre,
                 'precio' => $c->precio,
                 'stock' => $c->stock,
+                'descripcion' => $c->descripcion,
+                'fotos' => $c->fotos,
             ]),
-            'columnas' => ['id','nombre','categoria','modelo','marca','precio','stock'],
+            'columnas' => ['id','nombre','categoria','modelo','marca','precio','stock','descripcion','fotos'],
             'campos' => [
                 [
                     'name' => 'nombre',
@@ -58,11 +61,22 @@ class ComponenteController extends Controller
                     'name' => 'precio',
                     'label' => 'Precio',
                     'type' => 'number',
+                    'max' => 99999999.99,
                 ],
                 [
                     'name' => 'stock',
                     'label' => 'Stock',
                     'type' => 'number',
+                ],
+                [
+                    'name' => 'descripcion',
+                    'label' => 'Descripcion',
+                    'type' => 'text',
+                ],
+                [
+                    'name' => 'fotos',
+                    'label' => 'Fotos',
+                    'type' => 'text',
                 ],
             ],
         ]);
@@ -70,7 +84,7 @@ class ComponenteController extends Controller
 
     public function store(Request $request)
     {
-        $this->validaciones($request);
+        $datos = $this->validaciones($request);
 
         $duplicado = $this->comprobarDuplicado(
             $request->only('nombre', 'categoria_id', 'modelo_id')
@@ -90,14 +104,20 @@ class ComponenteController extends Controller
             return back()->with('success', 'Componente ya existía, stock incrementado correctamente.');
         }
 
-        Componente::create($request->only('nombre', 'categoria_id', 'modelo_id', 'precio', 'stock'));
+        $datos['fotos'] = $this->prepararFotos($request);
+        if (! $datos['fotos']) {
+            return back()->withErrors([
+                'fotos' => 'Debes añadir al menos una foto del componente.',
+            ])->withInput();
+        }
+        Componente::create($datos);
 
         return back()->with('success', 'Componente creado correctamente.');
     }
 
     public function update(Request $request, Componente $componente)
     {
-        $this->validaciones($request);
+        $datos = $this->validaciones($request);
 
         $duplicado = $this->comprobarDuplicado(
             $request->only('nombre','categoria_id','modelo_id'),
@@ -110,7 +130,13 @@ class ComponenteController extends Controller
             ]);
         }
 
-        $componente->update($request->only('nombre','categoria_id','modelo_id','precio','stock'));
+        $datos['fotos'] = $this->prepararFotos($request);
+        if (! $datos['fotos']) {
+            return back()->withErrors([
+                'fotos' => 'Debes mantener al menos una foto del componente.',
+            ])->withInput();
+        }
+        $componente->update($datos);
 
         return back()->with('success', 'Componente actualizado correctamente.');
     }
@@ -135,13 +161,20 @@ class ComponenteController extends Controller
             $stockDisponible = max(0, $componente->stock - $cantidadEnCarrito);
         }
 
+        $fotos = collect(explode(',', (string) $componente->fotos))
+            ->map(fn ($url) => trim($url))
+            ->filter(fn ($url) => $url !== '')
+            ->values()
+            ->all();
+
         return Inertia::render('producto', [
             'tipo' => 'componente',
             'componente' => [
                 'id' => $componente->id,
                 'nombre' => $componente->nombre,
                 'precio' => $componente->precio,
-                'imagen' => null,
+                'fotos' => $fotos,
+                'descripcion' => $componente->descripcion,
                 'subtitulo' => $subtitulo,
                 'categoria' => $categoria,
                 'marca' => $marca,
@@ -158,14 +191,18 @@ class ComponenteController extends Controller
         return back()->with('success', 'Componente eliminado correctamente.');
     }
 
-    private function validaciones(Request $request)
+    private function validaciones(Request $request): array
     {
-        $request->validate([
+        return $request->validate([
             'nombre' => 'required|string|max:255',
             'categoria_id' => 'required|exists:categorias,id',
             'modelo_id' => 'required|exists:modelos,id',
-            'precio' => 'required|numeric|min:0',
+            'precio' => 'required|numeric|min:0|max:99999999.99',
             'stock' => 'required|integer|min:0',
+            'descripcion' => 'required|string|max:2000',
+            'fotos' => 'nullable|string|max:5000|required_without:fotos_archivos',
+            'fotos_archivos' => 'nullable|array|max:12|required_without:fotos',
+            'fotos_archivos.*' => 'image|max:5120',
         ], [
             'nombre.required' => 'El nombre es obligatorio.',
             'nombre.string' => 'El nombre debe ser texto.',
@@ -177,10 +214,42 @@ class ComponenteController extends Controller
             'precio.required' => 'El precio es obligatorio.',
             'precio.numeric' => 'El precio debe ser un número.',
             'precio.min' => 'El precio no puede ser negativo.',
+            'precio.max' => 'El precio no puede superar 99.999.999,99.',
             'stock.required' => 'El stock es obligatorio.',
             'stock.integer' => 'El stock debe ser un número entero.',
             'stock.min' => 'El stock no puede ser negativo.',
+            'descripcion.required' => 'La descripción es obligatoria.',
+            'descripcion.string' => 'La descripción debe ser un texto válido.',
+            'descripcion.max' => 'La descripción no puede superar 2000 caracteres.',
+            'fotos.string' => 'El campo fotos debe ser un texto válido.',
+            'fotos.max' => 'El campo fotos no puede superar 5000 caracteres.',
+            'fotos.required_without' => 'Debes añadir al menos una foto.',
+            'fotos_archivos.array' => 'Las fotos deben enviarse en formato de lista.',
+            'fotos_archivos.max' => 'No puedes subir más de 12 fotos.',
+            'fotos_archivos.required_without' => 'Debes subir al menos una foto.',
+            'fotos_archivos.*.image' => 'Cada archivo debe ser una imagen válida.',
+            'fotos_archivos.*.max' => 'Cada imagen puede pesar como máximo 5MB.',
         ]);
+    }
+
+    private function prepararFotos(Request $request): ?string
+    {
+        $urls = collect(explode(',', (string) $request->input('fotos')))
+            ->map(fn ($url) => trim($url))
+            ->filter(fn ($url) => $url !== '')
+            ->filter(fn ($url) => str_starts_with($url, '/storage/') || filter_var($url, FILTER_VALIDATE_URL));
+
+        foreach ((array) $request->file('fotos_archivos', []) as $archivo) {
+            if (! $archivo) {
+                continue;
+            }
+            $path = $archivo->store('productos/componentes', 'public');
+            $urls->push(Storage::url($path));
+        }
+
+        $texto = $urls->unique()->values()->implode(',');
+
+        return $texto !== '' ? $texto : null;
     }
 
     private function comprobarDuplicado(array $datos, ?int $componente_edit_id = null): ?Componente
