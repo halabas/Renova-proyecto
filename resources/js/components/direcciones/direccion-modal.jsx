@@ -10,6 +10,7 @@ const valoresIniciales = {
   etiqueta: "Casa",
   nombre: "",
   apellidos: "",
+  dni: "",
   telefono: "",
   direccion: "",
   ciudad: "",
@@ -41,6 +42,7 @@ export default function DireccionModal({ abierto, onAbiertoChange, direccion = n
         etiqueta: direccion.etiqueta || "Casa",
         nombre: direccion.nombre || "",
         apellidos: direccion.apellidos || "",
+        dni: direccion.dni || "",
         telefono: direccion.telefono || "",
         direccion: direccion.direccion || "",
         ciudad: direccion.ciudad || "",
@@ -62,6 +64,7 @@ export default function DireccionModal({ abierto, onAbiertoChange, direccion = n
     if (!String(formDireccion.etiqueta || "").trim()) nuevosErrores.etiqueta = "La etiqueta es obligatoria.";
     if (!String(formDireccion.nombre || "").trim()) nuevosErrores.nombre = "El nombre es obligatorio.";
     if (!String(formDireccion.apellidos || "").trim()) nuevosErrores.apellidos = "Los apellidos son obligatorios.";
+    if (!/^\d{8}[A-Za-z]$/.test(String(formDireccion.dni || ""))) nuevosErrores.dni = "El DNI debe tener 8 números y una letra.";
     if (!/^\d{9}$/.test(String(formDireccion.telefono || ""))) nuevosErrores.telefono = "El teléfono debe tener 9 dígitos.";
     if (!String(formDireccion.direccion || "").trim()) nuevosErrores.direccion = "La dirección es obligatoria.";
     if (!String(formDireccion.ciudad || "").trim()) nuevosErrores.ciudad = "La ciudad es obligatoria.";
@@ -131,6 +134,17 @@ export default function DireccionModal({ abierto, onAbiertoChange, direccion = n
               />
               <InputError message={errores.apellidos || erroresBackendDireccion.apellidos} />
             </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="dni">DNI</Label>
+            <Input
+              id="dni"
+              value={formDireccion.dni}
+              onChange={(e) => setFormDireccion("dni", e.target.value.toUpperCase())}
+              maxLength={9}
+              placeholder="Ej: 12345678Z"
+            />
+            <InputError message={errores.dni || erroresBackendDireccion.dni} />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="telefono">Teléfono</Label>

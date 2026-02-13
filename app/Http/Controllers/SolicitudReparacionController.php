@@ -32,6 +32,7 @@ class SolicitudReparacionController extends Controller
                         'etiqueta' => $direccion->etiqueta,
                         'nombre' => $direccion->nombre,
                         'apellidos' => $direccion->apellidos,
+                        'dni' => $direccion->dni,
                         'telefono' => $direccion->telefono,
                         'direccion' => $direccion->direccion,
                         'ciudad' => $direccion->ciudad,

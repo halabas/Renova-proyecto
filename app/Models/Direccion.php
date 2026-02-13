@@ -13,6 +13,7 @@ class Direccion extends Model
         'etiqueta',
         'nombre',
         'apellidos',
+        'dni',
         'telefono',
         'direccion',
         'ciudad',

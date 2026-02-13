@@ -27,6 +27,7 @@ export default function DireccionesLista({
               <p className="text-xs text-slate-500">
                 {direccion.direccion}, {direccion.codigo_postal} {direccion.ciudad}, {direccion.provincia}
               </p>
+              <p className="text-xs text-slate-500">DNI: {direccion.dni || '-'}</p>
               <p className="text-xs text-slate-500">Tel: {direccion.telefono}</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button

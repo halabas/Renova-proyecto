@@ -22,12 +22,16 @@ class DireccionController extends Controller
             'etiqueta' => ['required', 'string', 'max:50'],
             'nombre' => ['required', 'string', 'max:100'],
             'apellidos' => ['required', 'string', 'max:150'],
+            'dni' => ['required', 'regex:/^[0-9]{8}[A-Za-z]$/'],
             'telefono' => ['required', 'digits:9'],
             'direccion' => ['required', 'string', 'max:255'],
             'ciudad' => ['required', 'string', 'max:100'],
             'provincia' => ['required', 'string', 'max:100'],
             'codigo_postal' => ['required', 'digits:5'],
             'predeterminada' => ['nullable', 'boolean'],
+        ], [
+            'dni.required' => 'El DNI es obligatorio.',
+            'dni.regex' => 'El DNI debe tener 8 números y una letra (ej: 12345678Z).',
         ]);
 
         $esPrimera = $user->direcciones()->count() === 0;
@@ -42,6 +46,7 @@ class DireccionController extends Controller
             'etiqueta' => $datos['etiqueta'],
             'nombre' => $datos['nombre'],
             'apellidos' => $datos['apellidos'],
+            'dni' => strtoupper($datos['dni']),
             'telefono' => $datos['telefono'],
             'direccion' => $datos['direccion'],
             'ciudad' => $datos['ciudad'],
@@ -64,12 +69,16 @@ class DireccionController extends Controller
             'etiqueta' => ['required', 'string', 'max:50'],
             'nombre' => ['required', 'string', 'max:100'],
             'apellidos' => ['required', 'string', 'max:150'],
+            'dni' => ['required', 'regex:/^[0-9]{8}[A-Za-z]$/'],
             'telefono' => ['required', 'digits:9'],
             'direccion' => ['required', 'string', 'max:255'],
             'ciudad' => ['required', 'string', 'max:100'],
             'provincia' => ['required', 'string', 'max:100'],
             'codigo_postal' => ['required', 'digits:5'],
             'predeterminada' => ['nullable', 'boolean'],
+        ], [
+            'dni.required' => 'El DNI es obligatorio.',
+            'dni.regex' => 'El DNI debe tener 8 números y una letra (ej: 12345678Z).',
         ]);
 
         $predeterminada = $datos['predeterminada'] ?? false;
@@ -81,6 +90,7 @@ class DireccionController extends Controller
             'etiqueta' => $datos['etiqueta'],
             'nombre' => $datos['nombre'],
             'apellidos' => $datos['apellidos'],
+            'dni' => strtoupper($datos['dni']),
             'telefono' => $datos['telefono'],
             'direccion' => $datos['direccion'],
             'ciudad' => $datos['ciudad'],

@@ -59,6 +59,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     // RUTAS DE USUARIOS
     Route::get('usuarios', [UsuarioController::class, 'index'])
         ->name('usuarios.index');
+    Route::patch('usuarios/{user}/rol', [UsuarioController::class, 'actualizarRol'])
+        ->name('usuarios.rol');
     Route::delete('usuarios/{user}', [UsuarioController::class, 'destroy'])
         ->name('usuarios.destroy');
 
