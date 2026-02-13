@@ -11,6 +11,7 @@ use App\Models\Pedido;
 use App\Models\PedidoProducto;
 use App\Notifications\NotificacionClase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Stripe\Stripe;
@@ -224,6 +225,27 @@ class CarritoController extends Controller
                 ->with('error', 'Tu carrito está vacío.');
         }
 
+        $idsInvalidos = [];
+        foreach ($productosCarrito as $producto) {
+            if (! $producto->producto) {
+                $idsInvalidos[] = $producto->id;
+                continue;
+            }
+
+            $stockDisponible = $producto->producto->stock ?? 0;
+            if ($producto->cantidad > $stockDisponible) {
+                return redirect()->route('carrito.index')
+                    ->with('error', 'Uno de los productos ya no tiene stock suficiente.');
+            }
+        }
+
+        if (! empty($idsInvalidos)) {
+            ProductoCarrito::whereIn('id', $idsInvalidos)->delete();
+
+            return redirect()->route('carrito.index')
+                ->with('error', 'Había productos eliminados en tu carrito. Revísalo de nuevo.');
+        }
+
         $direccionId = $request->input('direccion_id');
         if (! $direccionId) {
             return redirect()->route('carrito.index')
@@ -359,27 +381,64 @@ class CarritoController extends Controller
         }
 
         if ($pedido->estado !== 'pagado') {
-            $pedido->estado = 'pagado';
-            $pedido->save();
+            try {
+                DB::transaction(function () use ($pedido, $user) {
+                    $pedidoBloqueado = Pedido::where('id', $pedido->id)
+                        ->lockForUpdate()
+                        ->first();
 
-            $productosPedido = PedidoProducto::where('pedido_id', $pedido->id)->get();
+                    if (! $pedidoBloqueado || $pedidoBloqueado->estado === 'pagado') {
+                        return;
+                    }
 
-            foreach ($productosPedido as $productoPedido) {
-                $producto = $productoPedido->producto;
-                if (! $producto) {
-                    continue;
+                    $productosPedido = PedidoProducto::where('pedido_id', $pedidoBloqueado->id)->get();
+
+                    foreach ($productosPedido as $productoPedido) {
+                        if ($productoPedido->producto_type === Movil::class) {
+                            $producto = Movil::where('id', $productoPedido->producto_id)
+                                ->lockForUpdate()
+                                ->first();
+                        } else {
+                            $producto = Componente::where('id', $productoPedido->producto_id)
+                                ->lockForUpdate()
+                                ->first();
+                        }
+
+                        if (! $producto) {
+                            throw ValidationException::withMessages([
+                                'pedido' => ['Uno de los productos del pedido ya no existe.'],
+                            ]);
+                        }
+
+                        $stockActual = $producto->stock ?? 0;
+                        if ($stockActual < $productoPedido->cantidad) {
+                            throw ValidationException::withMessages([
+                                'pedido' => ['No hay stock suficiente para confirmar este pedido.'],
+                            ]);
+                        }
+
+                        $producto->stock = $stockActual - $productoPedido->cantidad;
+                        $producto->save();
+                    }
+
+                    $pedidoBloqueado->estado = 'pagado';
+                    $pedidoBloqueado->save();
+
+                    ProductoCarrito::where('user_id', $user->id)->delete();
+                });
+            } catch (ValidationException $e) {
+                $errores = $e->errors();
+                $mensaje = 'No se pudo confirmar el pedido.';
+                if (! empty($errores)) {
+                    $primerGrupo = reset($errores);
+                    if (is_array($primerGrupo) && ! empty($primerGrupo[0])) {
+                        $mensaje = (string) $primerGrupo[0];
+                    }
                 }
 
-                $stockActual = $producto->stock !== null ? $producto->stock : 0;
-                $nuevoStock = $stockActual - $productoPedido->cantidad;
-                if ($nuevoStock < 0) {
-                    $nuevoStock = 0;
-                }
-                $producto->stock = $nuevoStock;
-                $producto->save();
+                return redirect()->route('pedidos.index')
+                    ->with('error', $mensaje);
             }
-
-            ProductoCarrito::where('user_id', $user->id)->delete();
 
             $user->notify(new NotificacionClase(
                 'Pedido pagado',
