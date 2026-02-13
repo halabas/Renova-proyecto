@@ -35,19 +35,18 @@ function Footer() {
           <div>
             <h4 className="mb-4 font-semibold text-foreground">Productos</h4>
             <ul className="space-y-2">
-              <li><Link className={footerLinkClass} href="">Móviles</Link></li>
-              <li><Link className={footerLinkClass} href="">Componentes</Link></li>
-              <li><Link className={footerLinkClass} href="">Reparaciones</Link></li>
+              <li><Link className={footerLinkClass} href="/buscar?tipo=modelo">Móviles</Link></li>
+              <li><Link className={footerLinkClass} href="/buscar?tipo=componente">Componentes</Link></li>
+              <li><Link className={footerLinkClass} href="/reparaciones">Reparaciones</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="mb-4 font-semibold text-foreground">Sobre Nosotros</h4>
             <ul className="space-y-2">
-              <li><Link className={footerLinkClass} href="">Nuestra Historia</Link></li>
-              <li><Link className={footerLinkClass} href="">Blog</Link></li>
-              <li><Link className={footerLinkClass} href="">Política de Privacidad</Link></li>
-              <li><Link className={footerLinkClass} href="">Términos y Condiciones</Link></li>
+              <li><Link className={footerLinkClass} href="/nuestra-historia">Nuestra Historia</Link></li>
+              <li><Link className={footerLinkClass} href="/politica-de-privacidad">Política de Privacidad</Link></li>
+              <li><Link className={footerLinkClass} href="/terminos-y-condiciones">Términos y Condiciones</Link></li>
             </ul>
           </div>
 

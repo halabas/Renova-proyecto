@@ -72,7 +72,7 @@ class ContabilidadTest extends TestCase
         $respuesta->assertStatus(200);
         $respuesta->assertInertia(fn (Assert $page) => $page
             ->component('admin/contabilidad')
-            ->where('resumen.total', 200.0)
+            ->where('resumen.total', 200)
             ->where('resumen.pedidos_total', 120.5)
             ->where('resumen.reparaciones_total', 79.5)
             ->where('resumen.pedidos_count', 1)

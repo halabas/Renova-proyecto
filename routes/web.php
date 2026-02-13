@@ -26,6 +26,18 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // Ruta Buscar
 Route::get('/buscar', [BuscarController::class, 'index'])->name('buscar');
 
+Route::get('/nuestra-historia', function () {
+    return Inertia::render('info/nuestra-historia');
+})->name('info.historia');
+
+Route::get('/politica-de-privacidad', function () {
+    return Inertia::render('info/politica-privacidad');
+})->name('info.privacidad');
+
+Route::get('/terminos-y-condiciones', function () {
+    return Inertia::render('info/terminos-condiciones');
+})->name('info.terminos');
+
 Route::middleware(['auth', 'verified'])->group(function () {
 });
 Route::get('modelos/{modelo}', [ModeloController::class, 'show'])->name('modelos.show');
